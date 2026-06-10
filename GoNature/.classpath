@@ -12,42 +12,42 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry combineaccessrules="false" kind="src" path="/OCSF"/>
-	<classpathentry kind="lib" path="/Users/amjad/Desktop/javafx-sdk-21.0.11/lib/javafx-swt.jar">
+	<classpathentry kind="lib" path="lib/Mac Jars/javafx.base.jar">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="/Users/amjad/Desktop/javafx-sdk-21.0.11/lib/javafx.base.jar">
+	<classpathentry kind="lib" path="lib/Mac Jars/javafx.controls.jar">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="/Users/amjad/Desktop/javafx-sdk-21.0.11/lib/javafx.controls.jar">
+	<classpathentry kind="lib" path="lib/Mac Jars/javafx.fxml.jar">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="/Users/amjad/Desktop/javafx-sdk-21.0.11/lib/javafx.fxml.jar">
+	<classpathentry kind="lib" path="lib/Mac Jars/javafx.graphics.jar">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="/Users/amjad/Desktop/javafx-sdk-21.0.11/lib/javafx.graphics.jar">
+	<classpathentry kind="lib" path="lib/Mac Jars/javafx.media.jar">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="/Users/amjad/Desktop/javafx-sdk-21.0.11/lib/javafx.media.jar">
+	<classpathentry kind="lib" path="lib/Mac Jars/javafx.swing.jar">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="/Users/amjad/Desktop/javafx-sdk-21.0.11/lib/javafx.swing.jar">
+	<classpathentry kind="lib" path="lib/Mac Jars/javafx.web.jar">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="/Users/amjad/Desktop/javafx-sdk-21.0.11/lib/javafx.web.jar">
+	<classpathentry kind="lib" path="lib/Mac Jars/javafx-swt.jar">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>
