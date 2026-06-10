@@ -14,7 +14,7 @@ public class ServerLauncher {
             }
         }
 
-        GoNatureServer server = new GoNatureServer(port);
+        GoNatureServer server = new GoNatureServer(port, "");
         try {
             server.listen();
         } catch (Exception ex) {

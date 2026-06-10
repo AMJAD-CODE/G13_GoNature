@@ -15,17 +15,26 @@ public class DatabaseController {
 	// Connection settings
 	private static final String DB_URL = "jdbc:mysql://localhost:3306/gonature?serverTimezone=Asia/Jerusalem&useSSL=false";
 	private static final String DB_USER = "root";
-	private static final String DB_PASSWORD = "Amjad2002";
+	//private static final String DB_PASSWORD = "Amjad2002";
+	//private Connection conn;
 
+	private String dbPassword = "Amjad2002"; // default; can be overridden from the GUI
 	private Connection conn;
 
+	// Lets the server set the DB password (e.g. from the Server GUI) before connecting.
+	public void setPassword(String password) {
+		if (password != null && !password.isEmpty()) {
+			this.dbPassword = password;
+		}
+	}
 	// Open the database connection called once by the server at startup
 
 	// @return true if successful, false if the connection failed.
 
 	public boolean connect() {
 		try {
-			conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+			//conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+			conn = DriverManager.getConnection(DB_URL, DB_USER, dbPassword);
 			System.out.println("DatabaseController: connection opened.");
 			return true;
 		} catch (SQLException e) {

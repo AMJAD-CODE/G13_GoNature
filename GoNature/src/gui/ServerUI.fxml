@@ -17,6 +17,8 @@
             <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
             <Label text="Port:"/>
             <TextField fx:id="portField" text="5555" prefWidth="80"/>
+            <Label text="DB password:"/>
+            <TextField fx:id="dbPasswordField" prefWidth="140"/>
             <Button fx:id="startButton" text="Start Server" onAction="#onStartServer"/>
             <Button fx:id="stopButton"  text="Stop Server"  onAction="#onStopServer"  disable="true"/>
         </HBox>

@@ -1,5 +1,4 @@
 package gui;
-
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -13,16 +12,16 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import ocsf.server.ConnectionToClient;
 import server.GoNatureServer;
-
 /**
  * Controller for ServerUI.fxml. Holds the GoNatureServer instance and keeps the
  * connected clients table in sync with the server's actual state.
  */
 public class ServerController {
-
 	//Widgets from FXML fx:id must mach
 	@FXML
 	private TextField portField;
+	@FXML
+	private TextField dbPasswordField;
 	@FXML
 	private Button startButton;
 	@FXML
@@ -37,10 +36,8 @@ public class ServerController {
 	private TableColumn<ClientInfo, String> statusColumn;
 	@FXML
 	private Label statusLabel;
-
 	private GoNatureServer server;
 	private final ObservableList<ClientInfo> clientData = FXCollections.observableArrayList();
-
 	//Called automatically by JavaFX after the FXML widgets are added
 	@FXML
 	public void initialize() {
@@ -49,15 +46,14 @@ public class ServerController {
 		statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
 		clientsTable.setItems(clientData);
 	}
-
 	@FXML
 	public void onStartServer() {
 		try {
 			int port = Integer.parseInt(portField.getText().trim());
-			server = new GoNatureServer(port);
+			String dbPassword = dbPasswordField.getText();
+			server = new GoNatureServer(port, dbPassword);
 			server.setOnConnectionsChanged(this::refreshClientsTable);
 			server.listen();
-
 			startButton.setDisable(true);
 			stopButton.setDisable(false);
 			portField.setDisable(true);
@@ -67,7 +63,6 @@ public class ServerController {
 			System.out.println("ERROR in ServerController.onStartServer: " + e.getMessage());
 		}
 	}
-
 	@FXML
 	public void onStopServer() {
 		try {
@@ -84,7 +79,6 @@ public class ServerController {
 			System.out.println("ERROR in ServerController.onStopServer: " + e.getMessage());
 		}
 	}
-
 	//GoNatureServer calls this whenever a client connects or disconnects
 	private void refreshClientsTable() {
 		//check this again!!!!!
@@ -104,27 +98,22 @@ public class ServerController {
 			}
 		});
 	}
-
 	
 	public static class ClientInfo {
 		private final SimpleStringProperty ip;
 		private final SimpleStringProperty host;
 		private final SimpleStringProperty status;
-
 		public ClientInfo(String ip, String host, String status) {
 			this.ip = new SimpleStringProperty(ip);
 			this.host = new SimpleStringProperty(host);
 			this.status = new SimpleStringProperty(status);
 		}
-
 		public String getIp() {
 			return ip.get();
 		}
-
 		public String getHost() {
 			return host.get();
 		}
-
 		public String getStatus() {
 			return status.get();
 		}

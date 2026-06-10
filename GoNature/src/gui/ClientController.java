@@ -127,6 +127,11 @@ public class ClientController implements ChatIF {
 			LocalDate newDate = newDatePicker.getValue();
 			int newVisitors = Integer.parseInt(newVisitorsField.getText().trim());
 
+			if (newVisitors < 1 || newVisitors > 15) {
+				statusLabel.setText("Number of visitors must be between 1 and 15.");
+				return;
+			}
+
 			Order modified = new Order(selected.getOrderNumber(), Date.valueOf(newDate), newVisitors,
 					selected.getConfirmationCode(), selected.getSubscriberId(), selected.getDateOfPlacingOrder());
 

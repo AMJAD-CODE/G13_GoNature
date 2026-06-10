@@ -21,10 +21,13 @@ public class GoNatureServer extends AbstractServer {
 	private final DatabaseController db;
 	private Runnable onConnectionsChanged; //GUI refresh
 
-	public GoNatureServer(int port) {
+	public GoNatureServer(int port, String dbPassword) {
 		super(port);
 		this.db = new DatabaseController();
+		this.db.setPassword(dbPassword);
 	}
+	
+	
 
 	//GUI calls this to register a refresh callback
 	public void setOnConnectionsChanged(Runnable callback) {
