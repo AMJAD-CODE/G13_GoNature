@@ -1,7 +1,5 @@
 package server;
 
-import common.ChatIF;
-
 public class ServerLauncher {
 
     private static final int DEFAULT_PORT = 5555;
@@ -16,15 +14,7 @@ public class ServerLauncher {
             }
         }
 
-        // Simple console UI implementation for ChatIF to output server events
-        ChatIF consoleUI = new ChatIF() {
-            @Override
-            public void display(Object msg) {
-                System.out.println(msg);
-            }
-        };
-
-        GoNatureServer server = new GoNatureServer(port, consoleUI);
+        GoNatureServer server = new GoNatureServer(port);
         try {
             server.listen();
         } catch (Exception ex) {

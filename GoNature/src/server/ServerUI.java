@@ -15,12 +15,25 @@ public class ServerUI extends Application {
     public static void main(String[] args) {
         launch(args);
     }
-
+/*
     @Override
     public void start(Stage stage) throws Exception {
         Parent root = FXMLLoader.load(getClass().getResource("/gui/ServerUI.fxml"));
         stage.setTitle("GoNature Server");
         stage.setScene(new Scene(root, 640, 420));
         stage.show();
+        
+
+    }*/
+    
+    @Override
+    public void start(Stage stage) throws Exception {
+        System.out.println("start() called");
+        Parent root = FXMLLoader.load(getClass().getResource("/gui/ServerUI.fxml"));
+        System.out.println("FXML loaded");
+        stage.setTitle("GoNature Server");
+        stage.setScene(new Scene(root, 640, 420));
+        stage.show();
+        System.out.println("Window shown");
     }
 }
