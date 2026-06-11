@@ -12,10 +12,11 @@ public class Subscriber implements Serializable {
     private String email;
     private String phoneNumber;
     private int familySize;
+    private String creditCardNumber; // Added in Commit 2
 
     public Subscriber() {}
 
-    public Subscriber(int subscriberId, String idNumber, String firstName, String lastName, String email, String phoneNumber, int familySize) {
+    public Subscriber(int subscriberId, String idNumber, String firstName, String lastName, String email, String phoneNumber, int familySize, String creditCardNumber) {
         this.subscriberId = subscriberId;
         this.idNumber = idNumber;
         this.firstName = firstName;
@@ -23,6 +24,7 @@ public class Subscriber implements Serializable {
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.familySize = familySize;
+        this.creditCardNumber = creditCardNumber;
     }
 
     public int getSubscriberId() { return subscriberId; }
@@ -45,6 +47,9 @@ public class Subscriber implements Serializable {
 
     public int getFamilySize() { return familySize; }
     public void setFamilySize(int familySize) { this.familySize = familySize; }
+
+    public String getCreditCardNumber() { return creditCardNumber; }
+    public void setCreditCardNumber(String creditCardNumber) { this.creditCardNumber = creditCardNumber; }
 
     @Override
     public String toString() {
