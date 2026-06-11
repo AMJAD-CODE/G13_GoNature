@@ -1,132 +1,104 @@
 package server;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
+import common.ChatIF;
 import common.Message;
-import common.Order;
+//import common.User; to be added
 import db.DatabaseController;
+//import db.DatabaseConfig; to be added
 import ocsf.server.AbstractServer;
 import ocsf.server.ConnectionToClient;
 
-/**
- * The OCSF server for GoNature. Owns the DatabaseController, listens for
- * incoming Messages from clients, and dispatches them to the appropriate
- * handler. Notifies a GUI (via a Runnable callback) when the connected client
- * list changes.
- */
 public class GoNatureServer extends AbstractServer {
 
-	private final DatabaseController db;
-	private Runnable onConnectionsChanged; //GUI refresh
+    private final DatabaseController db;
+    private final ChatIF ui;
 
-	public GoNatureServer(int port, String dbPassword) {
-		super(port);
-		this.db = new DatabaseController();
-		this.db.setPassword(dbPassword);
-	}
-	
-	
+    public GoNatureServer(int port, ChatIF ui) {
+        super(port);
+        this.ui = ui;
+        this.db = new DatabaseController();
+    }
 
-	//GUI calls this to register a refresh callback
-	public void setOnConnectionsChanged(Runnable callback) {
-		this.onConnectionsChanged = callback;
-	}
+    @Override
+    protected void serverStarted() {
+        ui.display("Server: Starting listener on port " + getPort());
+        
+        // Initialize config and connect to DB dynamically (Commit 2 feature)
+        DatabaseConfig config = new DatabaseConfig();
+        config.loadConfig();
+        
+        if (db.connect(config.getDbHost(), config.getDbName(), config.getDbUser(), config.getDbPassword())) {
+            ui.display("Server: Database connected successfully.");
+        } else {
+            ui.display("Server ERROR: Database connection failed. Queries will fail.");
+        }
+    }
 
-	
-	@Override
-	protected void serverStarted() {
-		System.out.println("Server started on port " + getPort());
-		if (!db.connect()) {
-			System.out.println("WARNING: DB connection failed. Queries will not work.");
-		}
-	}
+    @Override
+    protected void serverStopped() {
+        ui.display("Server: Listener stopped.");
+        db.disconnect();
+    }
 
-	@Override
-	protected void serverStopped() {
-		System.out.println("Server stopped.");
-		db.disconnect();
-	}
+    @Override
+    protected void clientConnected(ConnectionToClient client) {
+        ui.display("Client connected: " + client.getInetAddress().getHostAddress());
+    }
 
-	
-	@Override
-	protected void clientConnected(ConnectionToClient client) {
-		System.out.println("Client connected: " + client.getInetAddress());
-		notifyConnectionsChanged();
-	}
+    @Override
+    protected synchronized void clientDisconnected(ConnectionToClient client) {
+        ui.display("Client disconnected: " + client.getInetAddress().getHostAddress());
+        
+        String username = (String) client.getInfo("Username");
+        if (username != null) {
+            db.setLoginStatus(username, false);
+            ui.display("Automatically logged out user: " + username);
+        }
+    }
 
-	@Override
-	protected synchronized void clientDisconnected(ConnectionToClient client) {
-		markDisconnected(client);
-	}
+    @Override
+    protected void handleMessageFromClient(Object msg, ConnectionToClient client) {
+        if (!(msg instanceof Message)) {
+            System.out.println("ERROR: unexpected message type received: " + msg);
+            return;
+        }
 
-	@Override
-	protected synchronized void clientException(ConnectionToClient client, Throwable exception) {
-		markDisconnected(client);
-	}
+        Message request = (Message) msg;
+        ui.display("Request Received: " + request.getAction() + " from " + client.getInetAddress().getHostAddress());
+        
+        try {
+            Message response = processRequest(request, client);
+            client.sendToClient(response);
+        } catch (IOException e) {
+            ui.display("Error processing request: " + e.getMessage());
+        }
+    }
 
-	
-	 //Both clientDisconnected and clientException end up here. The flag ensures we
-	 //update the GUI only once, no matter which (or both) fired.
-	 
-	private void markDisconnected(ConnectionToClient client) {
-		if (client.getInfo("Disconnected") == null) {
-			client.setInfo("Disconnected", true);
-			System.out.println("Client disconnected: " + client.getInetAddress());
-			notifyConnectionsChanged();
-		}
-	}
-
-	private void notifyConnectionsChanged() {
-		if (onConnectionsChanged != null) {
-			onConnectionsChanged.run();
-		}
-	}
-
-	@Override
-	protected void handleMessageFromClient(Object msg, ConnectionToClient client) {
-		try {
-			if (!(msg instanceof Message)) {
-				System.out.println("ERROR in handleMessageFromClient: unexpected object: " + msg);
-				return;
-			}
-			Message request = (Message) msg;
-
-			switch (request.getAction()) {
-			case Message.GET_ORDERS:
-				handleGetOrders(client);
-				break;
-			case Message.UPDATE_ORDER:
-				handleUpdateOrder((Order) request.getPayload(), client);
-				break;
-			default:
-				System.out.println("ERROR: unknown action: " + request.getAction());
-				client.sendToClient(new Message(Message.ERROR, "Unknown action: " + request.getAction()));
-			}
-		} catch (Exception e) {
-			System.out.println("ERROR in handleMessageFromClient: " + e.getMessage());
-			try {
-				client.sendToClient(new Message(Message.ERROR, e.getMessage()));
-			} catch (IOException ioe) {
-				System.out.println("Also failed to send error back to client: " + ioe.getMessage());
-			}
-		}
-	}
-
-
-	private void handleGetOrders(ConnectionToClient client) throws IOException {
-		List<Order> orders = db.getAllOrders();
-		// Wrap in ArrayList to guarantee a Serializable  type on the wire.
-		client.sendToClient(new Message(Message.ORDERS_LIST, new ArrayList<>(orders)));
-	}
-
-	private void handleUpdateOrder(Order order, ConnectionToClient client) throws IOException {
-		boolean ok = db.updateOrder(order);
-		if (ok) {
-			client.sendToClient(new Message(Message.UPDATE_OK, null));
-		} else {
-			client.sendToClient(new Message(Message.ERROR, "Update failed for order " + order.getOrderNumber()));
-		}
-	}
+    private Message processRequest(Message request, ConnectionToClient client) {
+        if (!db.isConnected()) {
+            return new Message(Message.ERROR, "Database is NOT connected to the server.");
+        }
+        
+        switch (request.getAction()) {
+            case Message.LOGIN: {
+                String[] creds = (String[]) request.getPayload();
+                User user = db.loginUser(creds[0], creds[1]);
+                if (user != null) {
+                    client.setInfo("Username", user.getUsername());
+                    return new Message(Message.OK, user);
+                } else {
+                    return new Message(Message.ERROR, "Login failed. Invalid credentials or user already logged in.");
+                }
+            }
+            case Message.LOGOUT: {
+                String username = (String) request.getPayload();
+                db.setLoginStatus(username, false);
+                client.setInfo("Username", null);
+                return new Message(Message.OK, "Logged out successfully");
+            }
+            default:
+                return new Message(Message.ERROR, "Unknown server command in current sprint: " + request.getAction());
+        }
+    }
 }
