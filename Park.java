@@ -10,8 +10,8 @@ public class Park implements Serializable {
     private int maxQuota;
     private int currentQuota;
     private int stayDuration;
+    private int reservedGap; // Added in Commit 3
     
-    // Added in Commit 2 for Parameter Update management
     private Integer pendingMaxQuota;
     private Integer pendingReservedGap;
     private Integer pendingStayDuration;
@@ -19,11 +19,12 @@ public class Park implements Serializable {
 
     public Park() {}
 
-    public Park(int parkId, String parkName, int maxQuota, int currentQuota, int stayDuration) {
+    public Park(int parkId, String parkName, int maxQuota, int currentQuota, int reservedGap, int stayDuration) {
         this.parkId = parkId;
         this.parkName = parkName;
         this.maxQuota = maxQuota;
         this.currentQuota = currentQuota;
+        this.reservedGap = reservedGap;
         this.stayDuration = stayDuration;
         this.pendingChangesStatus = "NONE";
     }
@@ -42,6 +43,9 @@ public class Park implements Serializable {
 
     public int getStayDuration() { return stayDuration; }
     public void setStayDuration(int stayDuration) { this.stayDuration = stayDuration; }
+
+    public int getReservedGap() { return reservedGap; }
+    public void setReservedGap(int reservedGap) { this.reservedGap = reservedGap; }
 
     public Integer getPendingMaxQuota() { return pendingMaxQuota; }
     public void setPendingMaxQuota(Integer pendingMaxQuota) { this.pendingMaxQuota = pendingMaxQuota; }
@@ -62,6 +66,7 @@ public class Park implements Serializable {
                 ", parkName='" + parkName + '\'' +
                 ", maxQuota=" + maxQuota +
                 ", currentQuota=" + currentQuota +
+                ", reservedGap=" + reservedGap +
                 ", pendingStatus='" + pendingChangesStatus + '\'' +
                 '}';
     }

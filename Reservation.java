@@ -15,10 +15,18 @@ public class Reservation implements Serializable {
     private String email;
     private String phoneNumber;
     private String reservationType; // 'INDIVIDUAL', 'FAMILY_SUBSCRIBER', 'ORGANIZED_GROUP'
-    private String status; // 'PENDING_CONFIRMATION', 'CONFIRMED', 'CANCELLED', 'WAITING_LIST', etc.
+    private String status; // 'PENDING_CONFIRMATION', 'CONFIRMED', 'CANCELLED', 'WAITING_LIST', 'ACTIVE', 'COMPLETED'
     private String paymentStatus; // 'UNPAID', 'PAID_IN_ADVANCE', 'PAID_AT_ENTRANCE'
     private double price;
     private Timestamp createdAt;
+    
+    // Added in Commit 3 for Exit/Entry validation & automated timers
+    private Timestamp actualEntryTime;
+    private Timestamp actualExitTime;
+    private Timestamp reminderSentTime;
+    private Timestamp spotPromotedTime;
+    private Timestamp cancelledAt;
+    private boolean isNoShow;
 
     public Reservation() {}
 
@@ -78,6 +86,24 @@ public class Reservation implements Serializable {
 
     public Timestamp getCreatedAt() { return createdAt; }
     public void setCreatedAt(Timestamp createdAt) { this.createdAt = createdAt; }
+
+    public Timestamp getActualEntryTime() { return actualEntryTime; }
+    public void setActualEntryTime(Timestamp actualEntryTime) { this.actualEntryTime = actualEntryTime; }
+
+    public Timestamp getActualExitTime() { return actualExitTime; }
+    public void setActualExitTime(Timestamp actualExitTime) { this.actualExitTime = actualExitTime; }
+
+    public Timestamp getReminderSentTime() { return reminderSentTime; }
+    public void setReminderSentTime(Timestamp reminderSentTime) { this.reminderSentTime = reminderSentTime; }
+
+    public Timestamp getSpotPromotedTime() { return spotPromotedTime; }
+    public void setSpotPromotedTime(Timestamp spotPromotedTime) { this.spotPromotedTime = spotPromotedTime; }
+
+    public Timestamp getCancelledAt() { return cancelledAt; }
+    public void setCancelledAt(Timestamp cancelledAt) { this.cancelledAt = cancelledAt; }
+
+    public boolean isNoShow() { return isNoShow; }
+    public void setNoShow(boolean noShow) { isNoShow = noShow; }
 
     @Override
     public String toString() {
