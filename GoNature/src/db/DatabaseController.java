@@ -5,102 +5,68 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-
-import common.Order;
+import common.User;
 
 public class DatabaseController {
 
-	// Connection settings
-	private static final String DB_URL = "jdbc:mysql://localhost:3306/gonature?serverTimezone=Asia/Jerusalem&useSSL=false";
-	private static final String DB_USER = "root";
-	//private static final String DB_PASSWORD = "Amjad2002";
-	//private Connection conn;
+    private Connection conn;
 
-	private String dbPassword = "Amjad2002"; // default; can be overridden from the GUI
-	private Connection conn;
+    public boolean connect(String host, String dbName, String user, String password) {
+        String url = "jdbc:mysql://" + host + "/" + dbName + "?serverTimezone=Asia/Jerusalem&useSSL=false";
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            conn = DriverManager.getConnection(url, user, password);
+            System.out.println("Database connection established.");
+            return true;
+        } catch (Exception e) {
+            System.out.println("Database connection error: " + e.getMessage());
+            return false;
+        }
+    }
 
-	// Lets the server set the DB password (e.g. from the Server GUI) before connecting.
-	public void setPassword(String password) {
-		if (password != null && !password.isEmpty()) {
-			this.dbPassword = password;
-		}
-	}
-	// Open the database connection called once by the server at startup
+    public void disconnect() {
+        try {
+            if (conn != null && !conn.isClosed()) {
+                conn.close();
+                System.out.println("Database connection closed.");
+            }
+        } catch (SQLException e) {
+            System.out.println("Database disconnection error: " + e.getMessage());
+        }
+    }
 
-	// @return true if successful, false if the connection failed.
+    public boolean isConnected() {
+        try {
+            return conn != null && !conn.isClosed();
+        } catch (SQLException e) {
+            return false;
+        }
+    }
 
-	public boolean connect() {
-		try {
-			//conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
-			conn = DriverManager.getConnection(DB_URL, DB_USER, dbPassword);
-			System.out.println("DatabaseController: connection opened.");
-			return true;
-		} catch (SQLException e) {
-			System.out.println("ERROR in DatabaseController.connect: " + e.getMessage());
-			return false;
-		}
-	}
+    public User loginUser(String username, String password) {
+        if (!isConnected()) {
+            System.out.println("Error: Database not connected.");
+            return null;
+        }
 
-	/**
-	 * Reads every row from the Order table and converts each into an Order object.
-	 * 
-	 * @return list of Orders (empty list if the query fails for any reason).
-	 */
-	public List<Order> getAllOrders() {
-		List<Order> result = new ArrayList<>();
-		String sql = "SELECT * FROM `Order`";
-
-		try (PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
-
-			while (rs.next()) {
-				Order order = new Order(rs.getInt("order_number"), rs.getDate("order_date"),
-						rs.getInt("number_of_visitors"), rs.getInt("confirmation_code"), rs.getInt("subscriber_id"),
-						rs.getDate("date_of_placing_order"));
-				result.add(order);
-			}
-		} catch (SQLException e) {
-			System.out.println("ERROR in DatabaseController.getAllOrders: " + e.getMessage());
-		}
-
-		return result;
-	}
-
-	/**
-	 * Updates an existing order's order_date and number_of_visitors fields. The
-	 * order_number identifies which row to change.
-	 * 
-	 * @param order Order carrying the new values.
-	 * @return true if exactly one row was modified.
-	 */
-	public boolean updateOrder(Order order) {
-		String sql = "UPDATE `Order` SET order_date = ?, number_of_visitors = ? WHERE order_number = ?";
-
-		try (PreparedStatement ps = conn.prepareStatement(sql)) {
-			ps.setDate(1, order.getOrderDate());
-			ps.setInt(2, order.getNumberOfVisitors());
-			ps.setInt(3, order.getOrderNumber());
-
-			int rowsAffected = ps.executeUpdate();
-			return rowsAffected > 0;
-		} catch (SQLException e) {
-			System.out.println("ERROR in DatabaseController.updateOrder: " + e.getMessage());
-			return false;
-		}
-	}
-
-	/**
-	 * Closes the DB connection cleanly. Called when the server shuts down.
-	 */
-	public void disconnect() {
-		try {
-			if (conn != null && !conn.isClosed()) {
-				conn.close();
-				System.out.println("DatabaseController: connection closed.");
-			}
-		} catch (SQLException e) {
-			System.out.println("ERROR in DatabaseController.disconnect: " + e.getMessage());
-		}
-	}
+        String sql = "SELECT * FROM users WHERE username = ? AND password = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, username);
+            ps.setString(2, password);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new User(
+                        rs.getString("username"),
+                        rs.getString("password"),
+                        rs.getString("first_name"),
+                        rs.getString("last_name"),
+                        rs.getString("role")
+                    );
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("SQL Error in loginUser: " + e.getMessage());
+        }
+        return null;
+    }
 }
