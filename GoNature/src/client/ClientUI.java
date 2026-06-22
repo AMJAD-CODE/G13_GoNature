@@ -8,7 +8,10 @@ import javafx.stage.Stage;
 
 public class ClientUI extends Application {
 
-    public static void main(String[] args) {
+    public static GoNatureClient client;
+    public static common.User currentUser;
+
+	public static void main(String[] args) {
         launch(args);
     }
 

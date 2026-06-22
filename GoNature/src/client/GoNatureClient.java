@@ -1,6 +1,9 @@
 package client;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 import common.ChatIF;
 import common.Message;
 import ocsf.client.AbstractClient;
@@ -18,7 +21,8 @@ public class GoNatureClient extends AbstractClient {
     private final ChatIF clientUI;
     private static Message lastResponse = null;
     public static boolean awaitResponse = false;
-
+    public static List<common.Order> lastOrders;
+	public static String lastUpdateResult;
     /**
      * Constructs a GoNatureClient and configures it to connect to the
      * given host and port. Does not open the connection itself; call
@@ -33,6 +37,7 @@ public class GoNatureClient extends AbstractClient {
     public GoNatureClient(String host, int port, ChatIF clientUI) throws IOException {
         super(host, port);
         this.clientUI = clientUI;
+        lastOrders=new ArrayList<>();
     }
 
 
@@ -92,5 +97,35 @@ public class GoNatureClient extends AbstractClient {
         }
         
         return lastResponse;
+    }
+
+
+    public void handleMessageFromClientUI(Message message) {
+
+        Message response = sendRequest(message);
+
+        if (response == null)
+            return;
+
+        switch (response.getAction()) {
+
+        case Message.ORDERS_LIST:
+            if (response.getPayload() instanceof List<?>) {
+                lastOrders = (List<common.Order>) response.getPayload();
+            }
+            break;
+
+        case Message.UPDATE_OK:
+            lastUpdateResult = "OK";
+            break;
+
+        case Message.ERROR:
+            lastUpdateResult = String.valueOf(response.getPayload());
+            break;
+
+        default:
+            System.out.println("Unhandled response: " + response);
+            break;
+        }
     }
 }

@@ -52,7 +52,7 @@ public class LoginController {
         if (Message.OK.equals(response.getAction())) {
             User user = (User) response.getPayload();
             ClientUI.currentUser = user;
-            statusLabel.setText("Login successful! Welcome " + user.getFirstName());
+            statusLabel.setText("Login successful! Welcome " + user.getFname());
             
             // Redirect based on role (Dashboard FXMLs will be loaded here in next sprints)
             System.out.println("User logged in with role: " + user.getRole());

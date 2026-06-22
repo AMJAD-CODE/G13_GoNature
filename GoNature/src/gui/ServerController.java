@@ -16,7 +16,7 @@ import server.GoNatureServer;
  * Controller for ServerUI.fxml. Holds the GoNatureServer instance and keeps the
  * connected clients table in sync with the server's actual state.
  */
-public class ServerController {
+public class ServerController implements common.ChatIF {
 	//Widgets from FXML fx:id must mach
 	@FXML
 	private TextField portField;
@@ -50,8 +50,7 @@ public class ServerController {
 	public void onStartServer() {
 		try {
 			int port = Integer.parseInt(portField.getText().trim());
-			String dbPassword = dbPasswordField.getText();
-			server = new GoNatureServer(port, dbPassword);
+			server = new GoNatureServer(port, this);
 			server.setOnConnectionsChanged(this::refreshClientsTable);
 			server.listen();
 			startButton.setDisable(true);
@@ -117,5 +116,10 @@ public class ServerController {
 		public String getStatus() {
 			return status.get();
 		}
+	}
+
+	@Override
+	public void display(Object message) {
+	    System.out.println(message);
 	}
 }

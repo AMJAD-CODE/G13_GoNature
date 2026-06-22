@@ -63,7 +63,7 @@ public class VisitorController {
     public void initialize() {
         User cur = ClientUI.currentUser;
         if (cur != null) {
-            welcomeLabel.setText("Welcome " + cur.getFirstName() + " (ID: " + cur.getUsername() + ")");
+            welcomeLabel.setText("Welcome " + cur.getFname() + " (ID: " + cur.getUsername() + ")");
         }
 
         // Fill standard working hours (08:00 - 20:00)
