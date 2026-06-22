@@ -28,12 +28,13 @@ public class Reservation implements Serializable {
     private Timestamp spotPromotedTime;
     private Timestamp cancelledAt;
     private boolean isNoShow;
+    private int stayDuration;
 
     public Reservation() {}
 
     public Reservation(int reservationId, String visitorId, int parkId, String parkName, Timestamp visitDateTime,
                        int numberOfVisitors, String email, String phoneNumber, String reservationType,
-                       String status, String paymentStatus, double price, Timestamp createdAt) {
+                       String status, String paymentStatus, double price, Timestamp createdAt,int stayDuration) {
         this.reservationId = reservationId;
         this.visitorId = visitorId;
         this.parkId = parkId;
@@ -47,6 +48,7 @@ public class Reservation implements Serializable {
         this.paymentStatus = paymentStatus;
         this.price = price;
         this.createdAt = createdAt;
+        this.stayDuration=stayDuration;
     }
 
     public int getReservationId() { return reservationId; }
@@ -110,4 +112,12 @@ public class Reservation implements Serializable {
     public String toString() {
         return "Reservation #" + reservationId + " to " + parkName + " (visitors: " + numberOfVisitors + ", status: " + status + ")";
     }
+
+	public int getStayDuration() {
+		return stayDuration;
+	}
+
+	public void setStayDuration(int stayDuration) {
+		this.stayDuration = stayDuration;
+	}
 }

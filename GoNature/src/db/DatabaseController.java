@@ -87,7 +87,8 @@ public class DatabaseController {
                         rs.getString("password"),
                         rs.getString("first_name"),
                         rs.getString("last_name"),
-                        rs.getString("role")
+                        rs.getString("role"),
+                        rs.getString("email")
                     );
                 }
             }
@@ -253,13 +254,14 @@ public class DatabaseController {
     }
 
     public boolean registerGuide(User guide) {
-        String sql = "INSERT INTO users (username, password, first_name, last_name, role, email) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO users (username, password, first_name, last_name, role, email) VALUES (?, ?, ?, ?, ?, ?)";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, guide.getUsername());
             ps.setString(2, guide.getPassword());
             ps.setString(3, guide.getFname());
             ps.setString(4, guide.getLname());
             ps.setString(5, guide.getRole());
+            ps.setString(6, guide.getEmail());
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             System.out.println("Error registering guide: " + e.getMessage());
@@ -350,8 +352,10 @@ public class DatabaseController {
     }
 
     public Reservation createReservation(Reservation res) {
-        String sql = "INSERT INTO reservations (visitor_id, park_id, visit_date_time, number_of_visitors, email, phone_number, reservation_type, status, payment_status, price, created_at) " +
-                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    	String sql =
+    			"INSERT INTO reservations (visitor_id, park_id, visit_date_time, number_of_visitors, "
+    			+ "stay_duration, email, phone_number, reservation_type, status, payment_status, price,"
+    			+ " created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, res.getVisitorId());
             ps.setInt(2, res.getParkId());
@@ -397,7 +401,8 @@ public class DatabaseController {
                         rs.getString("status"),
                         rs.getString("payment_status"),
                         rs.getDouble("price"),
-                        rs.getTimestamp("created_at")
+                        rs.getTimestamp("created_at"),
+                        rs.getInt("stay_duration")
                     );
                     list.add(r);
                 }
@@ -427,7 +432,8 @@ public class DatabaseController {
                         rs.getString("status"),
                         rs.getString("payment_status"),
                         rs.getDouble("price"),
-                        rs.getTimestamp("created_at")
+                        rs.getTimestamp("created_at"),
+                        rs.getInt("stay_duration")
                     );
                 }
             }

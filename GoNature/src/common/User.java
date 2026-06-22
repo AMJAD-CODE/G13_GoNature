@@ -7,15 +7,16 @@ public class User {
     private String fname;
     private String lname;
     private String role;
-
+    private String email;
     public User(String username, String password,
-                String fname, String lname, String role) {
+                String fname, String lname, String role,String email) {
 
         this.username = username;
         this.password = password;
         this.fname = fname;
         this.lname = lname;
         this.role = role;
+        this.email=email;
     }
 
 	public String getUsername() {
@@ -56,5 +57,9 @@ public class User {
 
 	public void setRole(String role) {
 		this.role = role;
+	}
+
+	public String getEmail() {
+		return email;
 	}
 }

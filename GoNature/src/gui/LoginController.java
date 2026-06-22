@@ -76,7 +76,7 @@ public class LoginController {
         }
 
         // Create local guest user and cache
-        User visitor = new User(visitorId, "", "Visitor", "Guest", "VISITOR");
+        User visitor = new User(visitorId, "", "Visitor", "Guest", "VISITOR","visitor@com");
         ClientUI.currentUser = visitor;
         
         statusLabel.setText("Visitor Login successful!");

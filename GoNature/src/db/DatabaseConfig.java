@@ -18,9 +18,9 @@ public class DatabaseConfig {
     public DatabaseConfig() {
         // Set default configurations for GoNature DB
         this.dbHost = "localhost";
-        this.dbName = "gonature_db";
+        this.dbName = "gonature";
         this.dbUser = "root";
-        this.dbPassword = "password";
+        this.dbPassword = "Rahaf28803*";
     }
 
     /**
