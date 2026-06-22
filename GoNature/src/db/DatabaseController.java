@@ -253,7 +253,7 @@ public class DatabaseController {
     }
 
     public boolean registerGuide(User guide) {
-        String sql = "INSERT INTO users (username, password, first_name, last_name, role, email) VALUES (?, ?, ?, ?, 'GUIDE', ?)";
+        String sql = "INSERT INTO users (username, password, first_name, last_name, role, email) VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, guide.getUsername());
             ps.setString(2, guide.getPassword());
