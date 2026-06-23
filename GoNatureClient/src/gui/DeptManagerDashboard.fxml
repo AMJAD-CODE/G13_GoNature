@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.chart.BarChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<!--
+   GoNature — Department Manager control (nature theme).
+   Visual reskin only: all fx:id values, onAction handlers, table
+   columns, disable flags and chart axes are unchanged.
+-->
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="gui.DeptManagerController"
+            stylesheets="@nature.css" styleClass="dash-root"
+            prefWidth="980" prefHeight="680">
+
+    <top>
+        <HBox spacing="14" alignment="CENTER_LEFT" styleClass="dash-header">
+            <Label text="GoNature Department Control" styleClass="dash-brand"/>
+            <Separator orientation="VERTICAL" prefHeight="20" styleClass="header-sep"/>
+            <Label fx:id="deptLabel" text="Department Administration Panel" styleClass="dash-welcome"/>
+            <HBox HBox.hgrow="ALWAYS" alignment="CENTER_RIGHT">
+                <Button text="Logout" onAction="#onLogout" styleClass="btn-logout"/>
+            </HBox>
+        </HBox>
+    </top>
+
+    <center>
+        <TabPane tabClosingPolicy="UNAVAILABLE">
+            <tabs>
+                <!-- Pending Approvals Tab -->
+                <Tab text="Pending Proposals Approval">
+                    <SplitPane dividerPositions="0.5" orientation="HORIZONTAL">
+
+                        <!-- Park parameter approvals -->
+                        <VBox styleClass="pane-wrap">
+                            <VBox spacing="10" styleClass="panel" VBox.vgrow="ALWAYS">
+                                <Label text="Pending Park Parameter Updates" styleClass="panel-title"/>
+                                <TableView fx:id="parksTable" VBox.vgrow="ALWAYS">
+                                    <columns>
+                                        <TableColumn fx:id="parkIdCol" text="Park ID" prefWidth="60"/>
+                                        <TableColumn fx:id="parkNameCol" text="Park Name" prefWidth="120"/>
+                                        <TableColumn fx:id="parkCapacityCol" text="Prop. Capacity" prefWidth="90"/>
+                                        <TableColumn fx:id="parkGapCol" text="Prop. Gap" prefWidth="80"/>
+                                        <TableColumn fx:id="parkDurationCol" text="Prop. Stay" prefWidth="80"/>
+                                    </columns>
+                                </TableView>
+                                <HBox spacing="10">
+                                    <Button fx:id="approveParkBtn" text="Approve Parameter Change" onAction="#onApprovePark" disable="true"
+                                            styleClass="btn-primary" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                                    <Button fx:id="rejectParkBtn" text="Reject Parameter Change" onAction="#onRejectPark" disable="true"
+                                            styleClass="btn-danger" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                                </HBox>
+                            </VBox>
+                        </VBox>
+
+                        <!-- Promotion approvals -->
+                        <VBox styleClass="pane-wrap">
+                            <VBox spacing="10" styleClass="panel" VBox.vgrow="ALWAYS">
+                                <Label text="Pending Promotional Campaigns" styleClass="panel-title"/>
+                                <TableView fx:id="promotionsTable" VBox.vgrow="ALWAYS">
+                                    <columns>
+                                        <TableColumn fx:id="promoIdCol" text="Promo ID" prefWidth="60"/>
+                                        <TableColumn fx:id="promoParkCol" text="Park ID" prefWidth="60"/>
+                                        <TableColumn fx:id="promoNameCol" text="Campaign Name" prefWidth="120"/>
+                                        <TableColumn fx:id="promoDiscountCol" text="Discount %" prefWidth="70"/>
+                                        <TableColumn fx:id="promoStartCol" text="Start Date" prefWidth="80"/>
+                                        <TableColumn fx:id="promoEndCol" text="End Date" prefWidth="80"/>
+                                    </columns>
+                                </TableView>
+                                <HBox spacing="10">
+                                    <Button fx:id="approvePromoBtn" text="Approve Promotion" onAction="#onApprovePromo" disable="true"
+                                            styleClass="btn-primary" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                                    <Button fx:id="rejectPromoBtn" text="Reject Promotion" onAction="#onRejectPromo" disable="true"
+                                            styleClass="btn-danger" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                                </HBox>
+                            </VBox>
+                        </VBox>
+                    </SplitPane>
+                </Tab>
+
+                <!-- Department Reports Tab -->
+                <Tab text="Department Analytical Reports">
+                    <VBox styleClass="pane-wrap">
+                        <VBox spacing="14" styleClass="panel" VBox.vgrow="ALWAYS">
+                            <HBox spacing="12" alignment="CENTER_LEFT">
+                                <Label text="Report Month:" styleClass="field-label"/>
+                                <ComboBox fx:id="monthComboBox" prefWidth="120"/>
+                                <Label text="Report Year:" styleClass="field-label"/>
+                                <ComboBox fx:id="yearComboBox" prefWidth="100"/>
+                                <Label text="Filter Park:" styleClass="field-label"/>
+                                <ComboBox fx:id="parkFilterComboBox" prefWidth="180" promptText="All Parks (for cancellations)"/>
+                                <Button text="Load &amp; Render Analytics Charts" onAction="#onGenerateReports"
+                                        styleClass="btn-primary"/>
+                            </HBox>
+
+                            <Separator/>
+
+                            <HBox spacing="16" VBox.vgrow="ALWAYS">
+                                <VBox spacing="6" prefWidth="450" HBox.hgrow="ALWAYS">
+                                    <Label text="Visits Duration Segmentation (Hours of Stay)" styleClass="panel-title"/>
+                                    <BarChart fx:id="durationChart" legendVisible="true" VBox.vgrow="ALWAYS">
+                                        <xAxis><CategoryAxis label="Duration Segments"/></xAxis>
+                                        <yAxis><NumberAxis label="Number of Visits"/></yAxis>
+                                    </BarChart>
+                                </VBox>
+
+                                <VBox spacing="6" prefWidth="450" HBox.hgrow="ALWAYS">
+                                    <Label text="Reservation Cancellation Hourly Distribution" styleClass="panel-title"/>
+                                    <BarChart fx:id="cancellationChart" legendVisible="true" VBox.vgrow="ALWAYS">
+                                        <xAxis><CategoryAxis label="Hour of Working Day"/></xAxis>
+                                        <yAxis><NumberAxis label="Cancellations count"/></yAxis>
+                                    </BarChart>
+                                </VBox>
+                            </HBox>
+                        </VBox>
+                    </VBox>
+                </Tab>
+            </tabs>
+        </TabPane>
+    </center>
+
+    <bottom>
+        <HBox alignment="CENTER_LEFT" styleClass="dash-statusbar">
+            <Label fx:id="statusLabel" text="Ready" styleClass="statusbar-label"/>
+        </HBox>
+    </bottom>
+</BorderPane>

@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<!--
+   GoNature — Visitor / Guide dashboard (nature theme).
+   Visual reskin only: structure, all fx:id values, onAction handlers,
+   and visible/managed/disable flags are unchanged.
+-->
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="gui.VisitorController"
+            stylesheets="@nature.css" styleClass="dash-root"
+            prefWidth="980" prefHeight="680">
+
+    <top>
+        <HBox spacing="14" alignment="CENTER_LEFT" styleClass="dash-header">
+            <Label text="GoNature Portal" styleClass="dash-brand"/>
+            <Separator orientation="VERTICAL" prefHeight="20" styleClass="header-sep"/>
+            <Label fx:id="welcomeLabel" text="Welcome, Guest" styleClass="dash-welcome"/>
+            <HBox HBox.hgrow="ALWAYS" alignment="CENTER_RIGHT">
+                <Button text="Logout" onAction="#onLogout" styleClass="btn-logout"/>
+            </HBox>
+        </HBox>
+    </top>
+
+    <center>
+        <SplitPane dividerPositions="0.55" orientation="HORIZONTAL">
+
+            <!-- Left: existing bookings & actions -->
+            <VBox styleClass="pane-wrap">
+                <VBox spacing="10" styleClass="panel" VBox.vgrow="ALWAYS">
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Label text="My Active Reservations" styleClass="dash-title"/>
+                        <Button text="Refresh Table" onAction="#refreshReservations" styleClass="btn-neutral"/>
+                    </HBox>
+
+                    <TableView fx:id="reservationsTable" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="resIdCol" text="Res #" prefWidth="60"/>
+                            <TableColumn fx:id="parkCol" text="Park" prefWidth="120"/>
+                            <TableColumn fx:id="dateTimeCol" text="Date &amp; Time" prefWidth="140"/>
+                            <TableColumn fx:id="visitorsCol" text="Visitors" prefWidth="60"/>
+                            <TableColumn fx:id="typeCol" text="Type" prefWidth="90"/>
+                            <TableColumn fx:id="priceCol" text="Price (NIS)" prefWidth="80"/>
+                            <TableColumn fx:id="statusCol" text="Status" prefWidth="120"/>
+                        </columns>
+                    </TableView>
+
+                    <HBox spacing="10">
+                        <Button fx:id="confirmButton" text="Confirm Reservation" onAction="#onConfirmReservation" disable="true"
+                                styleClass="btn-primary" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                        <Button fx:id="cancelButton" text="Cancel Reservation" onAction="#onCancelReservation" disable="true"
+                                styleClass="btn-danger" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                    </HBox>
+                </VBox>
+            </VBox>
+
+            <!-- Right: booking panel & waiting-list option -->
+            <VBox styleClass="pane-wrap">
+                <VBox spacing="14" styleClass="panel" VBox.vgrow="ALWAYS">
+                    <Label text="Book a New Reservation" styleClass="dash-title"/>
+
+                    <GridPane hgap="10" vgap="12">
+                        <columnConstraints>
+                            <ColumnConstraints prefWidth="110"/>
+                            <ColumnConstraints prefWidth="250"/>
+                        </columnConstraints>
+
+                        <Label text="Select Park:" styleClass="field-label"/>
+                        <ComboBox fx:id="parkComboBox" prefWidth="250" promptText="Choose a park" GridPane.columnIndex="1"/>
+
+                        <Label text="Select Date:" styleClass="field-label" GridPane.rowIndex="1"/>
+                        <DatePicker fx:id="datePicker" prefWidth="250" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+                        <Label text="Select Hour:" styleClass="field-label" GridPane.rowIndex="2"/>
+                        <ComboBox fx:id="hourComboBox" prefWidth="250" promptText="Choose hour" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+
+                        <Label text="Total Visitors:" styleClass="field-label" GridPane.rowIndex="3"/>
+                        <TextField fx:id="visitorsField" promptText="e.g. 1" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+
+                        <Label text="Email Address:" styleClass="field-label" GridPane.rowIndex="4"/>
+                        <TextField fx:id="emailField" promptText="e.g. name@mail.com" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
+
+                        <Label text="Phone Number:" styleClass="field-label" GridPane.rowIndex="5"/>
+                        <TextField fx:id="phoneField" promptText="e.g. 054-XXXXXXX" GridPane.columnIndex="1" GridPane.rowIndex="5"/>
+
+                        <Label fx:id="prepayLabel" text="Payment Option:" styleClass="field-label" visible="false" GridPane.rowIndex="6"/>
+                        <CheckBox fx:id="prepayCheckBox" text="Pre-pay Group Booking (12% off)" visible="false" GridPane.columnIndex="1" GridPane.rowIndex="6"/>
+                    </GridPane>
+
+                    <Button text="Check Availability &amp; Book" onAction="#onBookVisit" prefWidth="360"
+                            styleClass="btn-primary" maxWidth="Infinity"/>
+
+                    <Separator/>
+
+                    <!-- Waiting list / alternates (toggled dynamically) -->
+                    <VBox fx:id="waitingListSection" spacing="10" visible="false" managed="false" styleClass="alert-panel">
+                        <Label text="Time Slot Full!" styleClass="alert-title"/>
+                        <Label text="No space available. You can either choose an alternative hour below, or join the waiting list for your requested slot." wrapText="true"/>
+
+                        <HBox spacing="10">
+                            <Button text="Join Waiting List" onAction="#onJoinWaitingList" styleClass="btn-accent"/>
+                            <Button text="View Alternate Hours" onAction="#onViewAlternates" styleClass="btn-info"/>
+                        </HBox>
+
+                        <TableView fx:id="alternatesTable" prefHeight="130" visible="false" managed="false">
+                            <columns>
+                                <TableColumn fx:id="altHourCol" text="Hour" prefWidth="120"/>
+                                <TableColumn fx:id="altLoadCol" text="Occupancy / Limit" prefWidth="180"/>
+                            </columns>
+                        </TableView>
+                    </VBox>
+                </VBox>
+            </VBox>
+        </SplitPane>
+    </center>
+
+    <bottom>
+        <HBox alignment="CENTER_LEFT" spacing="30" styleClass="dash-statusbar">
+            <Label fx:id="statusLabel" text="Ready" styleClass="statusbar-label"/>
+            <HBox HBox.hgrow="ALWAYS" alignment="CENTER_RIGHT">
+                <Label fx:id="simClockLabel" text="Simulated Time: --" styleClass="sim-clock"/>
+            </HBox>
+        </HBox>
+    </bottom>
+</BorderPane>

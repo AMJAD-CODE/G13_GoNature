@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.chart.BarChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<!--
+   GoNature — Park Manager portal (nature theme).
+   Visual reskin only: all fx:id values, onAction handlers and chart
+   axis definitions are unchanged.
+-->
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="gui.ParkManagerController"
+            stylesheets="@nature.css" styleClass="dash-root"
+            prefWidth="950" prefHeight="650">
+
+    <top>
+        <HBox spacing="14" alignment="CENTER_LEFT" styleClass="dash-header">
+            <Label text="GoNature Manager Portal" styleClass="dash-brand"/>
+            <Separator orientation="VERTICAL" prefHeight="20" styleClass="header-sep"/>
+            <Label fx:id="parkLabel" text="Park: Loading..." styleClass="dash-welcome"/>
+            <Label fx:id="managerLabel" text="Manager: Loading..." styleClass="dash-welcome"/>
+            <HBox HBox.hgrow="ALWAYS" alignment="CENTER_RIGHT">
+                <Button text="Logout" onAction="#onLogout" styleClass="btn-logout"/>
+            </HBox>
+        </HBox>
+    </top>
+
+    <center>
+        <TabPane tabClosingPolicy="UNAVAILABLE">
+            <tabs>
+                <!-- Parameters Configuration Tab -->
+                <Tab text="Control Parameters">
+                    <VBox styleClass="pane-wrap">
+                        <HBox spacing="14" VBox.vgrow="ALWAYS">
+
+                            <!-- Current config -->
+                            <VBox spacing="14" prefWidth="350" styleClass="panel">
+                                <Label text="Current Parameter Set" styleClass="panel-title"/>
+                                <GridPane hgap="15" vgap="10" styleClass="subcard">
+                                    <columnConstraints>
+                                        <ColumnConstraints prefWidth="150"/>
+                                        <ColumnConstraints prefWidth="100"/>
+                                    </columnConstraints>
+                                    <Label text="Maximum Capacity:" styleClass="field-label"/>
+                                    <Label fx:id="curCapacity" text="-" styleClass="detail-key" GridPane.columnIndex="1"/>
+
+                                    <Label text="Reservation Gap:" styleClass="field-label" GridPane.rowIndex="1"/>
+                                    <Label fx:id="curGap" text="-" styleClass="detail-key" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+                                    <Label text="Estimated Stay (hrs):" styleClass="field-label" GridPane.rowIndex="2"/>
+                                    <Label fx:id="curDuration" text="-" styleClass="detail-key" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+                                </GridPane>
+
+                                <Label fx:id="pendingLabel" text="No pending changes." styleClass="note-italic"/>
+                            </VBox>
+
+                            <!-- Propose changes -->
+                            <VBox spacing="14" HBox.hgrow="ALWAYS" styleClass="panel">
+                                <Label text="Propose Parameter Updates" styleClass="panel-title"/>
+
+                                <GridPane hgap="15" vgap="10">
+                                    <columnConstraints>
+                                        <ColumnConstraints prefWidth="190"/>
+                                        <ColumnConstraints prefWidth="150"/>
+                                    </columnConstraints>
+                                    <Label text="New Maximum Capacity:" styleClass="field-label"/>
+                                    <TextField fx:id="newCapacityField" promptText="e.g. 200" GridPane.columnIndex="1"/>
+
+                                    <Label text="New Reservation Gap:" styleClass="field-label" GridPane.rowIndex="1"/>
+                                    <TextField fx:id="newGapField" promptText="e.g. 30" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+                                    <Label text="New Estimated Stay (hrs):" styleClass="field-label" GridPane.rowIndex="2"/>
+                                    <TextField fx:id="newDurationField" promptText="e.g. 4" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+                                </GridPane>
+
+                                <Button text="Submit Parameters for Approval" onAction="#onSubmitParameters" maxWidth="Infinity"
+                                        styleClass="btn-primary"/>
+                            </VBox>
+                        </HBox>
+                    </VBox>
+                </Tab>
+
+                <!-- Promotional Discounts Tab -->
+                <Tab text="Promotions &amp; Discounts">
+                    <VBox styleClass="pane-wrap">
+                        <VBox spacing="15" styleClass="panel" VBox.vgrow="ALWAYS">
+                            <Label text="Propose New Marketing Promotion" styleClass="dash-title"/>
+
+                            <GridPane hgap="15" vgap="10">
+                                <columnConstraints>
+                                    <ColumnConstraints prefWidth="160"/>
+                                    <ColumnConstraints prefWidth="250"/>
+                                </columnConstraints>
+                                <Label text="Campaign Name:" styleClass="field-label"/>
+                                <TextField fx:id="promoNameField" promptText="e.g. Spring Discount" GridPane.columnIndex="1"/>
+
+                                <Label text="Discount Rate (%):" styleClass="field-label" GridPane.rowIndex="1"/>
+                                <TextField fx:id="promoDiscountField" promptText="e.g. 15 (for 15%)" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+                                <Label text="Campaign Start Date:" styleClass="field-label" GridPane.rowIndex="2"/>
+                                <DatePicker fx:id="promoStartPicker" prefWidth="250" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+                                <Label text="Campaign End Date:" styleClass="field-label" GridPane.rowIndex="3"/>
+                                <DatePicker fx:id="promoEndPicker" prefWidth="250" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+                            </GridPane>
+
+                            <Button text="Submit Promotion for Approval" onAction="#onSubmitPromotion" prefWidth="415"
+                                    styleClass="btn-info"/>
+                        </VBox>
+                    </VBox>
+                </Tab>
+
+                <!-- Analytics Reports Tab -->
+                <Tab text="Monthly Performance Reports">
+                    <VBox styleClass="pane-wrap">
+                        <VBox spacing="14" styleClass="panel" VBox.vgrow="ALWAYS">
+                            <HBox spacing="12" alignment="CENTER_LEFT">
+                                <Label text="Report Month:" styleClass="field-label"/>
+                                <ComboBox fx:id="monthComboBox" prefWidth="120"/>
+                                <Label text="Report Year:" styleClass="field-label"/>
+                                <ComboBox fx:id="yearComboBox" prefWidth="100"/>
+                                <Button text="Load &amp; Generate Monthly Charts" onAction="#onGenerateReports"
+                                        styleClass="btn-primary"/>
+                            </HBox>
+
+                            <Separator/>
+
+                            <HBox spacing="16" VBox.vgrow="ALWAYS">
+                                <VBox spacing="6" prefWidth="450" HBox.hgrow="ALWAYS">
+                                    <Label text="Visitor Segmentation Report" styleClass="panel-title"/>
+                                    <BarChart fx:id="visitorChart" legendVisible="false" VBox.vgrow="ALWAYS">
+                                        <xAxis><CategoryAxis label="Visitor Type"/></xAxis>
+                                        <yAxis><NumberAxis label="Number of Visitors"/></yAxis>
+                                    </BarChart>
+                                </VBox>
+
+                                <VBox spacing="6" prefWidth="450" HBox.hgrow="ALWAYS">
+                                    <Label text="Daily Occupancy Average Report (% of max capacity)" styleClass="panel-title"/>
+                                    <BarChart fx:id="usageChart" legendVisible="false" VBox.vgrow="ALWAYS">
+                                        <xAxis><CategoryAxis label="Day of Month"/></xAxis>
+                                        <yAxis><NumberAxis label="Avg Occupancy (%)" lowerBound="0" upperBound="100" autoRanging="false" tickUnit="20"/></yAxis>
+                                    </BarChart>
+                                </VBox>
+                            </HBox>
+                        </VBox>
+                    </VBox>
+                </Tab>
+            </tabs>
+        </TabPane>
+    </center>
+
+    <bottom>
+        <HBox alignment="CENTER_LEFT" styleClass="dash-statusbar">
+            <Label fx:id="statusLabel" text="Ready" styleClass="statusbar-label"/>
+        </HBox>
+    </bottom>
+</BorderPane>

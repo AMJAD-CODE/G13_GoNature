@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Circle?>
+<?import javafx.scene.shape.SVGPath?>
+
+<!--
+   GoNature — Login (nature theme)
+   Visual reskin only. All fx:id values and onAction handlers are
+   unchanged: usernameField, passwordField, visitorIdField, statusLabel,
+   #onEmployeeLogin, #onVisitorLogin. Controller wiring is untouched.
+-->
+<StackPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="gui.LoginController"
+           stylesheets="@nature.css" styleClass="auth-root"
+           prefWidth="500" prefHeight="400">
+
+    <!-- ============ decorative backdrop (behind everything) ============ -->
+    <Pane mouseTransparent="true">
+        <Circle styleClass="sun" radius="34" layoutX="410" layoutY="78"/>
+        <!-- far rolling hill -->
+        <SVGPath styleClass="hill-far"
+                 content="M-40,250 C120,212 250,238 380,206 C450,188 520,206 600,198 L600,1200 L-40,1200 Z"/>
+        <!-- mid hill -->
+        <SVGPath styleClass="hill-mid"
+                 content="M-40,292 C90,262 200,288 300,272 C400,256 500,286 600,276 L600,1200 L-40,1200 Z"/>
+        <!-- near hill -->
+        <SVGPath styleClass="hill-near"
+                 content="M-40,330 C110,304 210,326 320,314 C430,302 520,322 600,316 L600,1200 L-40,1200 Z"/>
+    </Pane>
+
+    <!-- =================== floating login card =================== -->
+    <VBox styleClass="auth-card" spacing="6" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity">
+
+        <!-- back: disconnects and returns to the Connection screen -->
+        <HBox alignment="CENTER_LEFT" maxWidth="Infinity">
+            <Button text="&#8592; Back" onAction="#onBack" styleClass="btn-back"/>
+        </HBox>
+
+        <!-- brand -->
+        <HBox spacing="8" alignment="CENTER">
+            <SVGPath styleClass="hill-near"
+                     content="M9,0 C2,5 0,12 4,18 C5,11 10,7 16,5 C12,9 10,14 11,18 C17,15 18,7 9,0 Z"/>
+            <Label text="GoNature" styleClass="brand-title"/>
+        </HBox>
+        <Label text="Park Reservation Portal" styleClass="brand-subtitle"/>
+
+        <Region prefHeight="6"/>
+
+        <!-- staff / guides -->
+        <VBox spacing="7" alignment="CENTER_LEFT" maxWidth="280">
+            <Label text="EMPLOYEES &amp; GUIDES" styleClass="section-label"/>
+            <Label text="Username" styleClass="field-label"/>
+            <TextField fx:id="usernameField" promptText="Enter username" maxWidth="Infinity"/>
+            <Label text="Password" styleClass="field-label"/>
+            <PasswordField fx:id="passwordField" promptText="Enter password" maxWidth="Infinity"/>
+            <Button text="Log in" onAction="#onEmployeeLogin" styleClass="btn-primary" maxWidth="Infinity"/>
+        </VBox>
+
+        <Region prefHeight="4"/>
+        <Separator styleClass="app-separator" prefWidth="280"/>
+        <Label text="or" styleClass="divider-label"/>
+
+        <!-- visitors -->
+        <VBox spacing="7" alignment="CENTER_LEFT" maxWidth="280">
+            <Label text="VISITORS — NO PASSWORD NEEDED" styleClass="section-label"/>
+            <Label text="ID / Subscriber number" styleClass="field-label"/>
+            <TextField fx:id="visitorIdField" promptText="Enter ID / Subscriber #" maxWidth="Infinity"/>
+            <Button text="Enter as visitor" onAction="#onVisitorLogin" styleClass="btn-accent" maxWidth="Infinity"/>
+        </VBox>
+
+        <Region prefHeight="2"/>
+        <Label fx:id="statusLabel" text="" styleClass="status-label" wrapText="true"/>
+    </VBox>
+
+</StackPane>

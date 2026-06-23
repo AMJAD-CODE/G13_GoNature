@@ -1,0 +1,330 @@
+/* =====================================================================
+   GoNature — shared "nature" theme
+   One stylesheet for all client screens. Purely visual: it never
+   depends on any fx:id or handler, so it cannot affect functionality.
+   Palette: forest greens (primary) · soft sun yellow (accent) ·
+            muted water blue (info) · warm pale background.
+   ===================================================================== */
+
+/* ----- Design tokens (cascade to every node via the scene root) ----- */
+.root {
+    forest-deep: #14422E;   /* darkest green – headings/text   */
+    forest:      #2F6B4F;   /* primary green – main buttons    */
+    leaf:        #3E8E63;   /* lighter green – hover/focus     */
+    forest-press:#265A42;
+    sun:         #EAC15E;   /* accent yellow – secondary CTA   */
+    sun-hover:   #E2B544;
+    sun-press:   #D9A93E;
+    water:       #5C97B8;   /* muted blue – informational      */
+    ink:         #2B3A30;   /* body text                       */
+    ink-soft:    #5E6F64;   /* muted/secondary text            */
+    field-bg:    #F4F8F3;
+    field-line:  #D2E2D5;
+    danger:      #C0492B;   /* error feedback                  */
+
+    -fx-font-family: "Avenir Next", "Helvetica Neue", "Segoe UI", "Roboto", sans-serif;
+}
+
+/* =====================================================================
+   Auth screens (Connection / Login) — full-bleed nature backdrop
+   ===================================================================== */
+.auth-root {
+    -fx-background-color: linear-gradient(to bottom,
+                          #DCEBDD 0%, #E6EFDB 45%, #F4EFD8 100%);
+}
+
+/* decorative sun + hills sit in a mouse-transparent layer behind content */
+.sun {
+    -fx-fill: radial-gradient(center 50% 50%, radius 50%, #F8E7A6, #EAC15E);
+    -fx-opacity: 0.92;
+    -fx-effect: dropshadow(gaussian, rgba(234,193,94,0.55), 26, 0.2, 0, 0);
+}
+.hill-far  { -fx-fill: #B4D0BD; -fx-opacity: 0.85; }
+.hill-mid  { -fx-fill: #7FB68C; }
+.hill-near { -fx-fill: #34674B; }
+
+/* ----- The floating card ----- */
+.auth-card {
+    -fx-background-color: rgba(255,255,255,0.97);
+    -fx-background-radius: 18;
+    -fx-padding: 26 30 22 30;
+    -fx-max-width: 360;
+    -fx-effect: dropshadow(gaussian, rgba(20,66,46,0.20), 30, 0.12, 0, 9);
+}
+
+/* ----- Brand / type hierarchy ----- */
+.brand-title {
+    -fx-font-size: 25px;
+    -fx-font-weight: bold;
+    -fx-text-fill: forest-deep;
+}
+.brand-subtitle {
+    -fx-font-size: 12.5px;
+    -fx-text-fill: ink-soft;
+}
+.section-label {
+    -fx-font-size: 11.5px;
+    -fx-font-weight: bold;
+    -fx-text-fill: forest;
+}
+.field-label {
+    -fx-font-size: 12px;
+    -fx-text-fill: ink;
+}
+.divider-label {
+    -fx-text-fill: #8AA08F;
+    -fx-font-size: 11px;
+}
+
+/* ----- Inputs (TextField + PasswordField share .text-field) ----- */
+.text-field, .password-field {
+    -fx-background-color: field-bg;
+    -fx-background-radius: 10;
+    -fx-border-color: field-line;
+    -fx-border-radius: 10;
+    -fx-border-width: 1.2;
+    -fx-padding: 9 12;
+    -fx-font-size: 13px;
+    -fx-text-fill: ink;
+    -fx-prompt-text-fill: #9DB0A2;
+}
+.text-field:focused, .password-field:focused {
+    -fx-background-color: white;
+    -fx-border-color: leaf;
+    -fx-effect: dropshadow(gaussian, rgba(62,142,99,0.35), 9, 0, 0, 0);
+}
+
+/* ----- Buttons ----- */
+.btn-primary {
+    -fx-background-color: forest;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 13.5px;
+    -fx-background-radius: 11;
+    -fx-padding: 11 18;
+    -fx-cursor: hand;
+}
+.btn-primary:hover   { -fx-background-color: leaf; }
+.btn-primary:pressed { -fx-background-color: forest-press; }
+
+.btn-accent {
+    -fx-background-color: sun;
+    -fx-text-fill: #1E3A2B;
+    -fx-font-weight: bold;
+    -fx-font-size: 13.5px;
+    -fx-background-radius: 11;
+    -fx-padding: 11 18;
+    -fx-cursor: hand;
+}
+.btn-accent:hover   { -fx-background-color: sun-hover; }
+.btn-accent:pressed { -fx-background-color: sun-press; }
+
+/* secondary / ghost button (e.g. Back) */
+.btn-back {
+    -fx-background-color: transparent;
+    -fx-text-fill: forest;
+    -fx-font-size: 12.5px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 9;
+    -fx-border-color: field-line;
+    -fx-border-radius: 9;
+    -fx-border-width: 1.2;
+    -fx-padding: 6 13;
+    -fx-cursor: hand;
+}
+.btn-back:hover   { -fx-background-color: #EAF1E9; -fx-border-color: leaf; }
+.btn-back:pressed { -fx-background-color: #DCE8DC; }
+
+/* ----- Status / feedback line ----- */
+.status-label {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: danger;   /* mostly validation/errors; success shows briefly */
+}
+
+/* neutral status line (info, not error) */
+.status-muted {
+    -fx-font-size: 12px;
+    -fx-text-fill: ink-soft;
+}
+
+/* ----- Separator on the card ----- */
+.app-separator .line {
+    -fx-border-color: #E2EBE2;
+    -fx-border-width: 1 0 0 0;
+}
+
+/* =====================================================================
+   DASHBOARDS (Visitor/Guide, Employee, ServiceRep, Park/Dept Manager)
+   Calm theme for dense data screens: green brand header, tinted
+   background, white floating card panels, themed controls.
+   Styles below target JavaFX default style classes (.table-view,
+   .combo-box, .date-picker, .check-box, .split-pane) so they apply
+   consistently across every dashboard with no per-control markup.
+   ===================================================================== */
+.dash-root {
+    -fx-background-color: linear-gradient(to bottom, #EAF2E6 0%, #F2F0E3 100%);
+}
+
+/* ----- top brand header ----- */
+.dash-header   { -fx-background-color: #2F6B4F; -fx-padding: 14 18; }
+.dash-brand    { -fx-font-size: 19px; -fx-font-weight: bold; -fx-text-fill: white; }
+.dash-welcome  { -fx-font-size: 13.5px; -fx-text-fill: #DCEBDD; }
+.header-sep .line { -fx-border-color: rgba(255,255,255,0.30); }
+
+.btn-logout {
+    -fx-background-color: rgba(255,255,255,0.14);
+    -fx-text-fill: white; -fx-font-weight: bold;
+    -fx-background-radius: 9; -fx-border-radius: 9; -fx-border-width: 1.2;
+    -fx-border-color: rgba(255,255,255,0.55);
+    -fx-padding: 7 15; -fx-cursor: hand;
+}
+.btn-logout:hover { -fx-background-color: rgba(255,255,255,0.26); }
+
+/* ----- card panels & titles ----- */
+.pane-wrap { -fx-background-color: transparent; -fx-padding: 14; }
+.panel {
+    -fx-background-color: white;
+    -fx-background-radius: 14;
+    -fx-padding: 16;
+    -fx-effect: dropshadow(gaussian, rgba(20,66,46,0.10), 16, 0.08, 0, 4);
+}
+.dash-title { -fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: forest-deep; }
+
+/* ----- extra button variants ----- */
+.btn-neutral {
+    -fx-background-color: #E7EFE7; -fx-text-fill: forest-deep; -fx-font-weight: bold;
+    -fx-background-radius: 9; -fx-padding: 7 13; -fx-cursor: hand;
+}
+.btn-neutral:hover { -fx-background-color: #D8E6D8; }
+
+.btn-danger {
+    -fx-background-color: #C0492B; -fx-text-fill: white; -fx-font-weight: bold;
+    -fx-background-radius: 10; -fx-padding: 10 16; -fx-cursor: hand;
+}
+.btn-danger:hover { -fx-background-color: #A53D23; }
+
+.btn-info {
+    -fx-background-color: water; -fx-text-fill: white; -fx-font-weight: bold;
+    -fx-background-radius: 10; -fx-padding: 9 15; -fx-cursor: hand;
+}
+.btn-info:hover { -fx-background-color: #4E84A4; }
+
+/* disabled buttons read clearly muted (confirm/cancel start disabled) */
+.button:disabled { -fx-opacity: 0.45; }
+
+/* ----- combo box & date picker ----- */
+.combo-box, .date-picker {
+    -fx-background-color: field-bg;
+    -fx-background-radius: 10;
+    -fx-border-color: field-line; -fx-border-radius: 10; -fx-border-width: 1.2;
+}
+.combo-box:focused, .date-picker:focused { -fx-border-color: leaf; }
+.combo-box > .list-cell { -fx-text-fill: ink; -fx-padding: 6 8; -fx-background-color: transparent; }
+.combo-box .arrow, .date-picker .arrow-button .arrow { -fx-background-color: forest; }
+.date-picker > .text-field, .combo-box .text-field {
+    -fx-background-color: transparent; -fx-background-radius: 0;
+    -fx-border-width: 0; -fx-padding: 4 6; -fx-effect: null;
+}
+.combo-box-popup .list-view {
+    -fx-background-color: white; -fx-border-color: field-line; -fx-border-radius: 10;
+    -fx-background-radius: 10;
+}
+.combo-box-popup .list-cell:filled:hover { -fx-background-color: #EAF1E9; -fx-text-fill: forest-deep; }
+.combo-box-popup .list-cell:filled:selected { -fx-background-color: #CFE6D6; -fx-text-fill: forest-deep; }
+
+/* ----- check box ----- */
+.check-box { -fx-text-fill: ink; -fx-font-size: 12.5px; }
+.check-box .box {
+    -fx-background-color: field-bg; -fx-border-color: field-line;
+    -fx-border-radius: 4; -fx-background-radius: 4;
+}
+.check-box:selected .box  { -fx-background-color: forest; -fx-border-color: forest; }
+.check-box:selected .mark { -fx-background-color: white; }
+
+/* ----- table view ----- */
+.table-view {
+    -fx-background-color: white;
+    -fx-background-radius: 10;
+    -fx-border-color: field-line; -fx-border-radius: 10; -fx-border-width: 1;
+    -fx-padding: 0;
+}
+.table-view .column-header-background {
+    -fx-background-color: #EAF1E9;
+    -fx-background-radius: 10 10 0 0;
+}
+.table-view .column-header, .table-view .filler { -fx-background-color: transparent; }
+.table-view .column-header .label {
+    -fx-text-fill: forest-deep; -fx-font-weight: bold; -fx-font-size: 12px;
+    -fx-alignment: CENTER_LEFT;
+}
+.table-view .table-cell {
+    -fx-text-fill: ink; -fx-padding: 7 10; -fx-font-size: 12.5px;
+    -fx-border-color: transparent #EAF1E9 transparent transparent;
+    -fx-border-width: 0 1 0 0;
+}
+.table-view .column-header {
+    -fx-border-color: transparent #DCE7DC transparent transparent;
+    -fx-border-width: 0 1 0 0;
+}
+.table-row-cell { -fx-background-color: white; -fx-table-cell-border-color: transparent; }
+.table-row-cell:odd { -fx-background-color: #F7FBF6; }
+.table-row-cell:selected { -fx-background-color: #CFE6D6; }
+.table-row-cell:selected .table-cell { -fx-text-fill: forest-deep; }
+.table-view .placeholder .label { -fx-text-fill: ink-soft; }
+
+/* ----- split pane (transparent so the tint shows in the gap) ----- */
+.split-pane { -fx-background-color: transparent; -fx-padding: 0; }
+.split-pane > .split-pane-divider { -fx-background-color: transparent; -fx-padding: 0 3; }
+
+/* ----- "slot full" alert card + bottom status bar ----- */
+.alert-panel {
+    -fx-background-color: #FCF3E0; -fx-background-radius: 10;
+    -fx-border-color: sun; -fx-border-radius: 10; -fx-border-width: 1.4; -fx-padding: 12;
+}
+.alert-title { -fx-text-fill: #B5701A; -fx-font-weight: bold; -fx-font-size: 14px; }
+
+.dash-statusbar  { -fx-background-color: #E5EEE4; -fx-padding: 6 16; }
+.statusbar-label { -fx-text-fill: ink-soft; -fx-font-size: 12px; }
+.sim-clock       { -fx-text-fill: forest-deep; -fx-font-weight: bold; -fx-font-size: 11.5px; }
+
+/* ----- tab pane (ServiceRep / manager screens) ----- */
+.tab-pane { -fx-background-color: transparent; }
+.tab-pane > .tab-header-area { -fx-padding: 10 14 0 14; }
+.tab-pane > .tab-header-area > .tab-header-background { -fx-background-color: transparent; }
+.tab-pane > .tab-content-area { -fx-background-color: transparent; }
+.tab-pane .tab {
+    -fx-background-color: #E1EBE0;
+    -fx-background-radius: 10 10 0 0;
+    -fx-padding: 7 18;
+}
+.tab-pane .tab:selected { -fx-background-color: white; }
+.tab-pane .tab .tab-label { -fx-text-fill: ink-soft; -fx-font-weight: bold; -fx-font-size: 13px; }
+.tab-pane .tab:selected .tab-label { -fx-text-fill: forest-deep; }
+.tab-pane .tab:selected .focus-indicator { -fx-border-color: transparent; }
+.tab-pane:focused > .tab-header-area > .headers-region > .tab:selected .focus-indicator {
+    -fx-border-color: transparent;
+}
+
+/* ----- small helpers (Employee/manager inner sections) ----- */
+.panel-title { -fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: forest-deep; }
+.subcard {
+    -fx-background-color: #F7FBF6; -fx-background-radius: 10;
+    -fx-border-color: field-line; -fx-border-radius: 10; -fx-border-width: 1; -fx-padding: 14;
+}
+.detail-key { -fx-font-weight: bold; -fx-text-fill: ink; }
+
+/* ----- italic note (e.g. "No pending changes") ----- */
+.note-italic { -fx-text-fill: ink-soft; -fx-font-style: italic; }
+
+/* ----- bar charts (manager reports) ----- */
+.chart { -fx-background-color: transparent; -fx-padding: 4; }
+.chart-plot-background { -fx-background-color: #F7FBF6; }
+.chart-vertical-grid-lines   { -fx-stroke: #E6EFE5; }
+.chart-horizontal-grid-lines { -fx-stroke: #E6EFE5; }
+.chart-alternative-row-fill  { -fx-fill: transparent; }
+.axis { -fx-tick-label-fill: ink-soft; -fx-font-size: 11px; }
+.axis-label { -fx-text-fill: forest-deep; -fx-font-weight: bold; }
+.chart-bar { -fx-bar-fill: forest; }
+.default-color0.chart-bar { -fx-bar-fill: #2F6B4F; }
+.chart-title { -fx-text-fill: forest-deep; -fx-font-weight: bold; }

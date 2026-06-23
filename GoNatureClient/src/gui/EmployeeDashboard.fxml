@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<!--
+   GoNature — Park Employee gate station (nature theme).
+   Visual reskin only: all fx:id values, onAction handlers and
+   visible="false" flags are unchanged.
+-->
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="gui.EmployeeController"
+            stylesheets="@nature.css" styleClass="dash-root"
+            prefWidth="900" prefHeight="600">
+
+    <top>
+        <HBox spacing="14" alignment="CENTER_LEFT" styleClass="dash-header">
+            <Label text="GoNature Control Station" styleClass="dash-brand"/>
+            <Separator orientation="VERTICAL" prefHeight="20" styleClass="header-sep"/>
+            <Label fx:id="parkLabel" text="Park: Unknown" styleClass="dash-welcome"/>
+            <Label fx:id="employeeLabel" text="Employee: Unknown" styleClass="dash-welcome"/>
+            <HBox HBox.hgrow="ALWAYS" alignment="CENTER_RIGHT" spacing="10">
+                <Button text="Refresh Park Capacity" onAction="#refreshCapacity" styleClass="btn-logout"/>
+                <Button text="Logout" onAction="#onLogout" styleClass="btn-logout"/>
+            </HBox>
+        </HBox>
+    </top>
+
+    <center>
+        <TabPane tabClosingPolicy="UNAVAILABLE">
+            <tabs>
+                <!-- Entrance Registration Tab -->
+                <Tab text="Register Visit Entry">
+                    <VBox styleClass="pane-wrap">
+                        <HBox spacing="14" VBox.vgrow="ALWAYS">
+
+                            <!-- Lookup + spontaneous -->
+                            <VBox spacing="12" prefWidth="350" styleClass="panel">
+                                <Label text="Identify Reservation" styleClass="panel-title"/>
+                                <TextField fx:id="entrySearchField" promptText="Enter Reservation Code or Visitor ID"/>
+                                <Button text="Look Up Reservation" onAction="#onLookupEntry" maxWidth="Infinity"
+                                        styleClass="btn-info"/>
+
+                                <Separator/>
+
+                                <Label text="Spontaneous / Unplanned Entry" styleClass="panel-title"/>
+                                <GridPane hgap="8" vgap="8">
+                                    <Label text="Visitor ID:" styleClass="field-label"/>
+                                    <TextField fx:id="spontIdField" promptText="Visitor National ID" GridPane.columnIndex="1"/>
+
+                                    <Label text="Group Size:" styleClass="field-label" GridPane.rowIndex="1"/>
+                                    <TextField fx:id="spontCountField" promptText="Number of travelers" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                                </GridPane>
+                                <Button text="Approve Spontaneous Entry" onAction="#onSpontaneousEntry" maxWidth="Infinity"
+                                        styleClass="btn-primary"/>
+                            </VBox>
+
+                            <!-- Validation & billing -->
+                            <VBox spacing="12" HBox.hgrow="ALWAYS" styleClass="panel">
+                                <Label text="Reservation Validation Details" styleClass="panel-title"/>
+
+                                <VBox fx:id="detailsBox" spacing="10" styleClass="subcard" visible="false">
+                                    <GridPane hgap="15" vgap="8">
+                                        <Label text="Reservation ID:" styleClass="detail-key"/>
+                                        <Label fx:id="detailResId" text="-" GridPane.columnIndex="1"/>
+
+                                        <Label text="Visitor ID:" styleClass="detail-key" GridPane.rowIndex="1"/>
+                                        <Label fx:id="detailVisitorId" text="-" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+                                        <Label text="Type:" styleClass="detail-key" GridPane.rowIndex="2"/>
+                                        <Label fx:id="detailType" text="-" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+
+                                        <Label text="Reserved Size:" styleClass="detail-key" GridPane.rowIndex="3"/>
+                                        <Label fx:id="detailSize" text="-" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+
+                                        <Label text="Status:" styleClass="detail-key" GridPane.rowIndex="4"/>
+                                        <Label fx:id="detailStatus" text="-" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
+                                    </GridPane>
+
+                                    <Separator/>
+
+                                    <HBox spacing="10" alignment="CENTER_LEFT">
+                                        <Label text="Actual Arrived Visitors:" styleClass="detail-key"/>
+                                        <TextField fx:id="actualVisitorsField" prefWidth="60"/>
+                                    </HBox>
+
+                                    <Button text="Process Entry Bill" onAction="#onProcessEntryBill" styleClass="btn-accent"/>
+
+                                    <!-- Billing summary -->
+                                    <VBox fx:id="billBox" spacing="8" styleClass="alert-panel" visible="false">
+                                        <Label text="Bill Invoice Summary" styleClass="alert-title"/>
+                                        <Label fx:id="billTextLabel" text="Calculated Price: 0 NIS" styleClass="panel-title"/>
+                                        <Button text="Confirm Payment Cleared &amp; Check-in" onAction="#onConfirmCheckIn"
+                                                styleClass="btn-primary"/>
+                                    </VBox>
+                                </VBox>
+                            </VBox>
+                        </HBox>
+                    </VBox>
+                </Tab>
+
+                <!-- Exit Registration Tab -->
+                <Tab text="Register Visit Exit">
+                    <VBox styleClass="pane-wrap">
+                        <VBox spacing="14" styleClass="panel" VBox.vgrow="ALWAYS">
+                            <Label text="Register Visitor Check-Out" styleClass="dash-title"/>
+                            <Label text="Enter the Visitor ID or Reservation Code to check the visitors out of the park and update capacity in real-time." wrapText="true"/>
+
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Label text="Visitor ID or Res. Code:" styleClass="detail-key"/>
+                                <TextField fx:id="exitSearchField" promptText="Enter code/ID" prefWidth="250"/>
+                                <Button text="Register Exit" onAction="#onLookupExit" styleClass="btn-danger"/>
+                            </HBox>
+                        </VBox>
+                    </VBox>
+                </Tab>
+            </tabs>
+        </TabPane>
+    </center>
+
+    <bottom>
+        <HBox spacing="20" alignment="CENTER_LEFT" styleClass="dash-statusbar">
+            <Label fx:id="statusLabel" text="Ready" styleClass="statusbar-label" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+            <Label fx:id="capacityLabel" text="Current Occupancy: 0 / 200 (Quota limit: 170)" styleClass="sim-clock"/>
+        </HBox>
+    </bottom>
+</BorderPane>

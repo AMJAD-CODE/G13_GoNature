@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="gui.ServerController" prefWidth="800" prefHeight="600">
+
+    <top>
+        <VBox spacing="10" style="-fx-background-color: #f4f4f4; -fx-border-color: #cccccc; -fx-border-width: 0 0 1 0;">
+            <padding><Insets top="15" right="15" bottom="15" left="15"/></padding>
+            
+            <Label text="GoNature Server Configuration" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+            
+            <GridPane hgap="15" vgap="8">
+                <!-- Row 0 -->
+                <Label text="Server Port:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                <TextField fx:id="portField" text="5555" prefWidth="80" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                
+                <Label text="DB Host:" GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+                <TextField fx:id="dbHostField" text="localhost:3306" prefWidth="150" GridPane.columnIndex="3" GridPane.rowIndex="0"/>
+                
+                <!-- Row 1 -->
+                <Label text="DB Name:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                <TextField fx:id="dbNameField" text="gonature" prefWidth="120" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                
+                <Label text="DB User:" GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+                <TextField fx:id="dbUserField" text="root" prefWidth="150" GridPane.columnIndex="3" GridPane.rowIndex="1"/>
+                
+                <Label text="DB Password:" GridPane.columnIndex="4" GridPane.rowIndex="1"/>
+                <PasswordField fx:id="dbPasswordField" text="Amjad2002" prefWidth="150" GridPane.columnIndex="5" GridPane.rowIndex="1"/>
+            </GridPane>
+            
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Button fx:id="startButton" text="Start Server" onAction="#onStartServer" 
+                        style="-fx-background-color: #2ecc71; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
+                <Button fx:id="stopButton" text="Stop Server" onAction="#onStopServer" disable="true"
+                        style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
+            </HBox>
+        </VBox>
+    </top>
+
+    <center>
+        <SplitPane dividerPositions="0.4" orientation="HORIZONTAL">
+            <!-- Connected Clients -->
+            <VBox spacing="5">
+                <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+                <Label text="Connected Workstations" style="-fx-font-weight: bold; -fx-text-fill: #34495e;"/>
+                <TableView fx:id="clientsTable" VBox.vgrow="ALWAYS">
+                    <columns>
+                        <TableColumn fx:id="ipColumn" text="IP Address" prefWidth="120"/>
+                        <TableColumn fx:id="hostColumn" text="Hostname" prefWidth="120"/>
+                        <TableColumn fx:id="statusColumn" text="Status" prefWidth="80"/>
+                    </columns>
+                </TableView>
+            </VBox>
+            
+            <!-- Console Logs -->
+            <VBox spacing="5">
+                <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+                <Label text="Simulation Alerts &amp; Server Logs" style="-fx-font-weight: bold; -fx-text-fill: #34495e;"/>
+                <TextArea fx:id="consoleLogArea" editable="false" 
+                          style="-fx-font-family: 'Courier New'; -fx-font-size: 12px; -fx-background-color: #2c3e50;" 
+                          VBox.vgrow="ALWAYS" wrapText="true"/>
+            </VBox>
+        </SplitPane>
+    </center>
+
+    <bottom>
+        <HBox alignment="CENTER_LEFT" spacing="30" style="-fx-background-color: #e2e8f0;">
+            <padding><Insets top="5" right="10" bottom="5" left="10"/></padding>
+            <Label fx:id="statusLabel" text="Server Offline" style="-fx-font-weight: bold; -fx-text-fill: #7f8c8d;"/>
+            <Label fx:id="simClockLabel" text="Simulated Time: --" style="-fx-font-size: 12px; -fx-text-fill: #2c3e50; -fx-font-weight: bold;"/>
+        </HBox>
+    </bottom>
+</BorderPane>

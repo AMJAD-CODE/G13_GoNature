@@ -1,0 +1,5 @@
+# Eclipse build output
+bin/
+# macOS clutter
+.DS_Store
+**/.DS_Store

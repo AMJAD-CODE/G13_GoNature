@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Circle?>
+<?import javafx.scene.shape.SVGPath?>
+
+<!--
+   GoNature — Connection (nature theme)
+   Visual reskin only. Preserved wiring: hostField, portField,
+   connectButton (#onConnect), statusLabel. Controller untouched.
+-->
+<StackPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="gui.ConnectionController"
+           stylesheets="@nature.css" styleClass="auth-root"
+           prefWidth="400" prefHeight="300">
+
+    <Pane mouseTransparent="true">
+        <Circle styleClass="sun" radius="30" layoutX="330" layoutY="66"/>
+        <SVGPath styleClass="hill-far"
+                 content="M-40,232 C120,196 250,220 380,190 C450,173 520,190 600,182 L600,1200 L-40,1200 Z"/>
+        <SVGPath styleClass="hill-mid"
+                 content="M-40,272 C90,244 200,268 300,252 C400,237 500,266 600,256 L600,1200 L-40,1200 Z"/>
+        <SVGPath styleClass="hill-near"
+                 content="M-40,300 C110,276 210,296 320,284 C430,273 520,292 600,286 L600,1200 L-40,1200 Z"/>
+    </Pane>
+
+    <VBox styleClass="auth-card" spacing="6" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity">
+
+        <HBox spacing="8" alignment="CENTER">
+            <SVGPath styleClass="hill-near"
+                     content="M9,0 C2,5 0,12 4,18 C5,11 10,7 16,5 C12,9 10,14 11,18 C17,15 18,7 9,0 Z"/>
+            <Label text="GoNature" styleClass="brand-title"/>
+        </HBox>
+        <Label text="Connect to the park server" styleClass="brand-subtitle"/>
+
+        <Region prefHeight="6"/>
+
+        <VBox spacing="6" alignment="CENTER_LEFT" maxWidth="240">
+            <Label text="Server IP / host" styleClass="field-label"/>
+            <TextField fx:id="hostField" text="localhost" maxWidth="Infinity"/>
+            <Label text="Server port" styleClass="field-label"/>
+            <TextField fx:id="portField" text="5555" maxWidth="Infinity"/>
+            <Region prefHeight="2"/>
+            <Button fx:id="connectButton" text="Connect" onAction="#onConnect"
+                    styleClass="btn-primary" maxWidth="Infinity"/>
+        </VBox>
+
+        <Region prefHeight="2"/>
+        <Label fx:id="statusLabel" text="Enter Server Details" styleClass="status-muted" wrapText="true"/>
+    </VBox>
+
+</StackPane>
