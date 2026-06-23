@@ -3,3 +3,7 @@ bin/
 # macOS clutter
 .DS_Store
 **/.DS_Store
+
+# Per-machine Eclipse files (cross-OS teams keep their own)
+.classpath
+.project
