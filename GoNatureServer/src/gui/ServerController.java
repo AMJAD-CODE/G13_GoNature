@@ -159,16 +159,12 @@ public class ServerController implements ChatIF {
         Platform.runLater(() -> {
             clientData.clear();
             if (server == null) return;
-            Thread[] connections = server.getClientConnections();
-            for (Thread t : connections) {
-                if (t instanceof ConnectionToClient) {
-                    ConnectionToClient c = (ConnectionToClient) t;
-                    InetAddress addr = c.getInetAddress();
-                    String ip = addr != null ? addr.getHostAddress() : "?";
-                    String host = addr != null ? addr.getHostName() : "?";
-                    String status = (c.getInfo("Disconnected") != null) ? "Disconnected" : "Connected";
-                    clientData.add(new ClientInfo(ip, host, status));
-                }
+            for (ConnectionToClient c : server.getLiveClients()) {
+                InetAddress addr = c.getInetAddress();
+                String ip = addr != null ? addr.getHostAddress() : "?";
+                String host = addr != null ? addr.getHostName() : "?";
+                String status = (c.getInfo("Disconnected") != null) ? "Disconnected" : "Connected";
+                clientData.add(new ClientInfo(ip, host, status));
             }
         });
     }

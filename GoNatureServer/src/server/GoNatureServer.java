@@ -29,6 +29,17 @@ public class GoNatureServer extends AbstractServer {
     private final SimulationScheduler scheduler;
     private Runnable onConnectionsChanged; // GUI update callback
 
+    // We track live connections ourselves rather than relying on
+    // getClientConnections(), which doesn't reliably drop hard-closed clients.
+    private final java.util.Set<ConnectionToClient> liveClients =
+            java.util.Collections.synchronizedSet(new java.util.LinkedHashSet<>());
+
+    public java.util.List<ConnectionToClient> getLiveClients() {
+        synchronized (liveClients) {
+            return new java.util.ArrayList<>(liveClients);
+        }
+    }
+
     public GoNatureServer(int port, String dbHost, String dbName, String dbUser, String dbPassword, ChatIF ui) {
         super(port);
         this.dbHost = dbHost;
@@ -65,10 +76,8 @@ public class GoNatureServer extends AbstractServer {
                 } catch (InterruptedException e) {
                     return;
                 }
-                Thread[] clients = getClientConnections();
                 long now = System.currentTimeMillis();
-                for (Thread t : clients) {
-                    ConnectionToClient client = (ConnectionToClient) t;
+                for (ConnectionToClient client : getLiveClients()) {
                     Long lastSeen = (Long) client.getInfo("LastSeen");
                     if (lastSeen != null && now - lastSeen > 15000) {
                         markDisconnected(client);
@@ -98,6 +107,7 @@ public class GoNatureServer extends AbstractServer {
 
     @Override
     protected void clientConnected(ConnectionToClient client) {
+        liveClients.add(client);
         ui.display("Client connected: " + client.getInetAddress().getHostAddress());
         notifyConnectionsChanged();
     }
@@ -115,6 +125,7 @@ public class GoNatureServer extends AbstractServer {
     private void markDisconnected(ConnectionToClient client) {
         if (client.getInfo("Disconnected") == null) {
             client.setInfo("Disconnected", true);
+            liveClients.remove(client);
             ui.display("Client disconnected: " + client.getInetAddress().getHostAddress());
             notifyConnectionsChanged();
             
