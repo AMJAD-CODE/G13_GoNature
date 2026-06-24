@@ -47,13 +47,47 @@ public class GoNatureServer extends AbstractServer {
     @Override
     protected void serverStarted() {
         ui.display("Server: Starting listener on port " + getPort());
+        startHeartbeat();
         if (db.connect(dbHost, dbName, dbUser, dbPassword)) {
             ui.display("Server: Database connected successfully.");
             scheduler.start();
         } else {
             ui.display("Server ERROR: Database connection failed. Queries will fail.");
         }
+    }    
+    
+    
+    private void startHeartbeat() {
+        Thread hb = new Thread(() -> {
+            while (isListening()) {
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    return;
+                }
+                Thread[] clients = getClientConnections();
+                long now = System.currentTimeMillis();
+                for (Thread t : clients) {
+                    ConnectionToClient client = (ConnectionToClient) t;
+                    Long lastSeen = (Long) client.getInfo("LastSeen");
+                    if (lastSeen != null && now - lastSeen > 15000) {
+                        markDisconnected(client);
+                        try { client.close(); } catch (IOException ignored) {}
+                        continue;
+                    }
+                    try {
+                        client.sendToClient(new Message(Message.PING, null));
+                    } catch (IOException ex) {
+                        markDisconnected(client);
+                    }
+                }
+            }
+        });
+        hb.setDaemon(true);
+        hb.start();
     }
+    
+    
 
     @Override
     protected void serverStopped() {
@@ -101,12 +135,20 @@ public class GoNatureServer extends AbstractServer {
 
     @Override
     protected void handleMessageFromClient(Object msg, ConnectionToClient client) {//a ConnectionToClient handle representing which client sent it
-        if (!(msg instanceof Message)) {
+        client.setInfo("LastSeen", System.currentTimeMillis());
+
+    	if (!(msg instanceof Message)) {
             System.out.println("ERROR: unexpected message type received: " + msg);
             return;
         }
 
         Message request = (Message) msg;
+
+        // PONG is just a heartbeat reply; LastSeen is already updated above.
+        if (Message.PONG.equals(request.getAction())) {
+            return;
+        }
+
         ui.display("Request Received: " + request.getAction() + " from " + client.getInetAddress().getHostAddress());
         
         try {

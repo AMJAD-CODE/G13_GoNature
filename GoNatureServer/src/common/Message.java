@@ -41,6 +41,8 @@ public class Message implements Serializable {
     
     public static final String SERVER_ALERT = "SERVER_ALERT";
     public static final String GET_SIMULATION_TIME = "GET_SIMULATION_TIME";
+    public static final String PING = "PING";
+    public static final String PONG = "PONG";
     
     public static final String OK = "OK";
     public static final String ERROR = "ERROR";

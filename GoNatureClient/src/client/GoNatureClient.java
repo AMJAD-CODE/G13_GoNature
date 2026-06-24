@@ -20,6 +20,15 @@ public class GoNatureClient extends AbstractClient {
 
     @Override
     protected void handleMessageFromServer(Object msg) {
+    	//========= ping
+    	if (msg instanceof Message && Message.PING.equals(((Message) msg).getAction())) {
+    	    try {
+    	        sendToServer(new Message(Message.PONG, null));
+    	    } catch (IOException e) {
+    	    }
+    	    return;
+    	}
+    	//=========
         System.out.println("--> handleMessageFromServer: " + msg);
         if (msg instanceof Message) {
             lastResponse = (Message) msg;
