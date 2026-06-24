@@ -79,7 +79,10 @@ public class GoNatureServer extends AbstractServer {
                 long now = System.currentTimeMillis();
                 for (ConnectionToClient client : getLiveClients()) {
                     Long lastSeen = (Long) client.getInfo("LastSeen");
+                    long age = (lastSeen != null) ? (now - lastSeen) : -1;
+                    ui.display("Heartbeat: checking client, last seen " + age + "ms ago");
                     if (lastSeen != null && now - lastSeen > 15000) {
+                        ui.display("Heartbeat: client is STALE, removing.");
                         markDisconnected(client);
                         try { client.close(); } catch (IOException ignored) {}
                         continue;
@@ -87,6 +90,7 @@ public class GoNatureServer extends AbstractServer {
                     try {
                         client.sendToClient(new Message(Message.PING, null));
                     } catch (IOException ex) {
+                        ui.display("Heartbeat: PING failed, removing client.");
                         markDisconnected(client);
                     }
                 }
