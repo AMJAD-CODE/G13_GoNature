@@ -72,25 +72,26 @@ public class GoNatureServer extends AbstractServer {
         Thread hb = new Thread(() -> {
             while (isListening()) {
                 try {
-                    Thread.sleep(5000);
+                    Thread.sleep(2000);
                 } catch (InterruptedException e) {
                     return;
                 }
                 long now = System.currentTimeMillis();
                 for (ConnectionToClient client : getLiveClients()) {
-                    Long lastSeen = (Long) client.getInfo("LastSeen");
-                    long age = (lastSeen != null) ? (now - lastSeen) : -1;
-                    ui.display("Heartbeat: checking client, last seen " + age + "ms ago");
-                    if (lastSeen != null && now - lastSeen > 15000) {
-                        ui.display("Heartbeat: client is STALE, removing.");
-                        markDisconnected(client);
-                        try { client.close(); } catch (IOException ignored) {}
-                        continue;
-                    }
                     try {
+                        Long lastSeen = (Long) client.getInfo("LastSeen");
+                        long age = (lastSeen != null) ? (now - lastSeen) : -1;
+                        ui.display("Heartbeat: checking client, last seen " + age + "ms ago");
+                        if (lastSeen != null && now - lastSeen > 6000) {
+                            ui.display("Heartbeat: client is STALE, removing.");
+                            markDisconnected(client);
+                            try { client.close(); } catch (Exception ignored) {}
+                            continue;
+                        }
                         client.sendToClient(new Message(Message.PING, null));
-                    } catch (IOException ex) {
-                        ui.display("Heartbeat: PING failed, removing client.");
+                    } catch (Exception ex) {
+                        // Any failure talking to this client = it's gone.
+                        ui.display("Heartbeat: client unreachable, removing.");
                         markDisconnected(client);
                     }
                 }
@@ -130,15 +131,20 @@ public class GoNatureServer extends AbstractServer {
         if (client.getInfo("Disconnected") == null) {
             client.setInfo("Disconnected", true);
             liveClients.remove(client);
-            ui.display("Client disconnected: " + client.getInetAddress().getHostAddress());
-            notifyConnectionsChanged();
-            
+
+            // A closed socket may have no InetAddress, so guard against null.
+            java.net.InetAddress addr = client.getInetAddress();
+            String ip = (addr != null) ? addr.getHostAddress() : "unknown";
+            ui.display("Client disconnected: " + ip);
+
             // Clean up logged in users associated with this connection
             String username = (String) client.getInfo("Username");
             if (username != null) {
                 db.setLoginStatus(username, false);
                 ui.display("Logged out user: " + username);
             }
+
+            notifyConnectionsChanged();
         }
     }
 

@@ -16,7 +16,7 @@ public class ServerUI extends Application {
     public void start(Stage stage) throws Exception {
         Parent root = FXMLLoader.load(getClass().getResource("/gui/ServerUI.fxml"));
         stage.setTitle("GoNature Central Server Control");
-        stage.setScene(new Scene(root, 800, 600));
+        stage.setScene(new Scene(root, 1000, 600));
         
         // Handle window close cleanly
         stage.setOnCloseRequest(event -> {
