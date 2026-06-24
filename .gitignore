@@ -6,4 +6,3 @@ bin/
 
 # Per-machine Eclipse files (cross-OS teams keep their own)
 .classpath
-.project
