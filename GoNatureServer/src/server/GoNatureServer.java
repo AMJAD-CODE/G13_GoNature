@@ -700,6 +700,36 @@ public class GoNatureServer extends AbstractServer  {
 			double speed = SimulationScheduler.getSpeedup();
 			return new Message(Message.OK, new Object[]{start, speed});
 		}
+		case Message.VALIDATE_VISITOR_LOGIN: {
+			String visitorId = (String) request.getPayload();
+			Subscriber sub = db.getSubscriberById(visitorId);
+			boolean hasReservation = db.hasActiveReservationForToday(visitorId, SimulationScheduler.getSimulatedTimestamp());
+			if (sub != null || hasReservation) {
+				return new Message(Message.OK, "Login successful");
+			} else {
+				return new Message(Message.ERROR, "Access Denied: Connection Validation Failed. Access is only allowed for registered subscribers or visitors with an active reservation for today.");
+			}
+		}
+		case Message.GET_USER_PROFILE: {
+			String query = (String) request.getPayload();
+			Subscriber sub = db.getSubscriberById(query);
+			if (sub != null) {
+				return new Message(Message.OK, sub);
+			}
+			User user = db.getUserByUsername(query);
+			if (user != null) {
+				return new Message(Message.OK, user);
+			}
+			return new Message(Message.ERROR, "Profile Not Found");
+		}
+		case Message.UPDATE_SUBSCRIBER: {
+			Subscriber sub = (Subscriber) request.getPayload();
+			if (db.updateSubscriberDetails(sub)) {
+				return new Message(Message.OK, "Subscriber profile updated successfully");
+			} else {
+				return new Message(Message.ERROR, "Failed to update subscriber details in database");
+			}
+		}
 		default:
 			return new Message(Message.ERROR, "Unknown server command: " + request.getAction());
 		}

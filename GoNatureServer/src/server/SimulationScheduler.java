@@ -36,18 +36,18 @@ public class SimulationScheduler implements Runnable  {
 	private Thread thread;
 
 	// Simulation Constants
-	// 1 hour = 3 seconds
-	// 24 hours (1 day) = 72 seconds (1.2 minutes)
-	// 2 hours = 6 seconds
-	// 1 hour = 3 seconds
-	private static final long SIM_DAY_MS = 72 * 1000L;            // 1.2 minutes in real time
-	private static final long SIM_TWO_HOURS_MS = 6 * 1000L;       // 6 seconds in real time
-	private static final long SIM_ONE_HOUR_MS = 3 * 1000L;        // 3 seconds in real time
-	private static final long SIM_STAY_DURATION_MS = 4 * 3 * 1000L; // 4 hours = 12 seconds
+	// 1 hour = 12 seconds
+	// 24 hours (1 day) = 288 seconds (4.8 minutes)
+	// 2 hours = 24 seconds
+	// 1 hour = 12 seconds
+	private static final long SIM_DAY_MS = 288 * 1000L;            // 4.8 minutes in real time
+	private static final long SIM_TWO_HOURS_MS = 24 * 1000L;       // 24 seconds in real time
+	private static final long SIM_ONE_HOUR_MS = 12 * 1000L;        // 12 seconds in real time
+	private static final long SIM_STAY_DURATION_MS = 4 * 12 * 1000L; // 4 hours = 48 seconds
 
 	// Simulated Clock Fields
 	private static long startTimeMs = 0;
-	private static double speedup = 1200.0;
+	private static double speedup = 300.0;
 
 	/**
 	 * Returns the simulation start time.
@@ -115,7 +115,7 @@ public class SimulationScheduler implements Runnable  {
 			thread.setDaemon(true);//setDaemon(true) means this thread won't keep the JVM alive on its own  when the server shuts down,
 			//the daemon thread dies with it rather than hanging the process
 			thread.start();// begins running run() on a separate thread
-			log("Simulation Scheduler started (1 hour = 3 seconds).");
+			log("Simulation Scheduler started (1 hour = 12 seconds).");
 		}
 	}
 
@@ -254,7 +254,7 @@ public class SimulationScheduler implements Runnable  {
 			if ("CONFIRMED".equals(r.getStatus()) || "PENDING_CONFIRMATION".equals(r.getStatus())) {
 				long visitTime = r.getVisitDateTime().getTime();
 
-				// If they are more than 12 simulation hours late (36 seconds)
+				// If they are more than 12 simulation hours late (144 seconds)
 				if (simNow - visitTime >= 12 * 60 * 60 * 1000L) {
 					db.flagNoShow(r.getReservationId(), new Timestamp(simNow));
 					log("Reservation #" + r.getReservationId() + " marked as NO_SHOW (Auto-Cancelled).");

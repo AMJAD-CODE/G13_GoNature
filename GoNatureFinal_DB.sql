@@ -110,8 +110,10 @@ INSERT INTO parks (park_name, max_quota, current_quota, reserved_gap, stay_durat
 INSERT INTO users (username, password, first_name, last_name, role, email, assigned_park_id) VALUES
 ('emp_masada', 'password123', 'John', 'Doe', 'PARK_EMPLOYEE', 'john.masada@gonature.gov.il', 1),
 ('emp_banias', 'password123', 'Jane', 'Smith', 'PARK_EMPLOYEE', 'jane.banias@gonature.gov.il', 2),
+('emp_carmel', 'password123', 'Tom', 'Brown', 'PARK_EMPLOYEE', 'tom.carmel@gonature.gov.il', 3),
 ('mgr_masada', 'password123', 'Robert', 'Miller', 'PARK_MANAGER', 'robert.masada@gonature.gov.il', 1),
 ('mgr_banias', 'password123', 'Emma', 'Davis', 'PARK_MANAGER', 'emma.banias@gonature.gov.il', 2),
+('mgr_carmel', 'password123', 'Lucy', 'White', 'PARK_MANAGER', 'lucy.carmel@gonature.gov.il', 3),
 ('dept_mgr', 'password123', 'Sarah', 'Chief', 'DEPARTMENT_MANAGER', 'sarah.chief@gonature.gov.il', NULL),
 ('rep_service', 'password123', 'Alice', 'Rep', 'SERVICE_REPRESENTATIVE', 'alice.service@gonature.gov.il', NULL);
 
@@ -134,12 +136,22 @@ INSERT INTO park_occupancy_log (park_id, log_time, current_visitors) VALUES
 (1, '2026-05-15 12:00:00', 140),
 (1, '2026-05-15 13:00:00', 135),
 (1, '2026-05-15 14:00:00', 95),
-(1, '2026-05-15 15:00:00', 50);
+(1, '2026-05-15 15:00:00', 50),
+(2, '2026-05-15 09:00:00', 20),
+(2, '2026-05-15 11:00:00', 60),
+(2, '2026-05-15 14:00:00', 95),
+(3, '2026-05-15 10:00:00', 50),
+(3, '2026-05-15 12:00:00', 110),
+(3, '2026-05-15 14:00:00', 80);
 
 -- 6. Seed Reservations (Completed & Canceled mock data for report analytics)
 INSERT INTO reservations (visitor_id, park_id, visit_date_time, number_of_visitors, email, phone_number, reservation_type, status, payment_status, price, created_at, actual_entry_time, actual_exit_time, cancelled_at, is_no_show) VALUES
 ('1', 1, '2026-05-10 10:00:00', 4, 'michael.green@gmail.com', '054-1234567', 'FAMILY_SUBSCRIBER', 'COMPLETED', 'PAID_AT_ENTRANCE', 244.8, '2026-05-05 14:00:00', '2026-05-10 09:55:00', '2026-05-10 13:45:00', NULL, FALSE),
 ('guest123', 1, '2026-05-11 11:00:00', 2, 'guest.one@gmail.com', '053-1112222', 'INDIVIDUAL', 'COMPLETED', 'PAID_AT_ENTRANCE', 136.0, '2026-05-09 09:00:00', '2026-05-11 11:05:00', '2026-05-11 15:10:00', NULL, FALSE),
 ('guide_dan', 2, '2026-05-12 09:00:00', 12, 'dan.guide@gmail.com', '054-1234567', 'ORGANIZED_GROUP', 'COMPLETED', 'PAID_IN_ADVANCE', 594.0, '2026-05-01 10:00:00', '2026-05-12 08:58:00', '2026-05-12 12:00:00', NULL, FALSE),
+('203456789', 2, '2026-05-15 14:00:00', 4, 'jessica.alba@gmail.com', '052-7654321', 'FAMILY_SUBSCRIBER', 'COMPLETED', 'PAID_AT_ENTRANCE', 244.8, '2026-05-10 11:00:00', '2026-05-15 13:58:00', '2026-05-15 17:50:00', NULL, FALSE),
 ('guest456', 2, '2026-05-14 14:00:00', 3, 'guest.two@gmail.com', '053-2223333', 'INDIVIDUAL', 'CANCELLED', 'UNPAID', 204.0, '2026-05-13 12:00:00', NULL, NULL, '2026-05-14 08:30:00', FALSE),
+('guest101', 3, '2026-05-20 12:00:00', 2, 'guest.one@gmail.com', '053-1112222', 'INDIVIDUAL', 'COMPLETED', 'PAID_AT_ENTRANCE', 136.0, '2026-05-18 10:00:00', '2026-05-20 12:02:00', '2026-05-20 15:45:00', NULL, FALSE),
+('guide_yuri', 3, '2026-05-22 10:00:00', 15, 'yuri.explorer@gmail.com', '050-9876543', 'ORGANIZED_GROUP', 'COMPLETED', 'PAID_IN_ADVANCE', 742.5, '2026-05-15 12:00:00', '2026-05-22 09:55:00', '2026-05-22 13:50:00', NULL, FALSE),
 ('guest789', 3, '2026-05-16 10:00:00', 5, 'guest.three@gmail.com', '053-4445555', 'INDIVIDUAL', 'CANCELLED', 'UNPAID', 340.0, '2026-05-14 11:00:00', NULL, NULL, NULL, TRUE);
+
