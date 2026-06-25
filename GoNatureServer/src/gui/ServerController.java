@@ -140,7 +140,7 @@ public class ServerController implements ChatIF {
             long simTime = SimulationScheduler.getSimulatedTime();
             Timestamp ts = new Timestamp(simTime);
             LocalDateTime ldt = ts.toLocalDateTime();
-            String formatted = ldt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            String formatted = ldt.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
             simClockLabel.setText("Simulated Time: " + formatted);
         }));
         clockTimeline.setCycleCount(Timeline.INDEFINITE);

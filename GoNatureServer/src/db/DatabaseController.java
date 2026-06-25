@@ -303,6 +303,82 @@ public class DatabaseController {
 		}
 	}
 
+	/**
+	 * Updates the details of an existing subscriber.
+	 *
+	 * @param sub the subscriber object with updated information
+	 * @return true if updated successfully; false otherwise
+	 */
+	public boolean updateSubscriberDetails(Subscriber sub) {
+		String sql = "UPDATE subscribers SET email = ?, phone_number = ?, family_size = ?, credit_card_number = ? WHERE subscriber_id = ?";
+		try (PreparedStatement ps = conn.prepareStatement(sql)) {
+			ps.setString(1, sub.getEmail());
+			ps.setString(2, sub.getPhoneNumber());
+			ps.setInt(3, sub.getFamilySize());
+			ps.setString(4, sub.getCreditCardNumber());
+			ps.setInt(5, sub.getSubscriberId());
+			return ps.executeUpdate() > 0;
+		} catch (SQLException e) {
+			System.out.println("Error updating subscriber details: " + e.getMessage());
+		}
+		return false;
+	}
+
+	/**
+	 * Checks if a visitor has an active reservation scheduled for today.
+	 *
+	 * @param visitorId the visitor's identifier
+	 * @param simNow the current simulated system time
+	 * @return true if an active reservation exists for today; false otherwise
+	 */
+	public boolean hasActiveReservationForToday(String visitorId, Timestamp simNow) {
+		String sql = "SELECT COUNT(*) FROM reservations WHERE visitor_id = ? AND status IN ('CONFIRMED', 'PENDING_CONFIRMATION', 'ACTIVE') AND DATE(visit_date_time) = DATE(?)";
+		try (PreparedStatement ps = conn.prepareStatement(sql)) {
+			ps.setString(1, visitorId);
+			ps.setTimestamp(2, simNow);
+			try (ResultSet rs = ps.executeQuery()) {
+				if (rs.next()) {
+					return rs.getInt(1) > 0;
+				}
+			}
+		} catch (SQLException e) {
+			System.out.println("Error checking active reservations for today: " + e.getMessage());
+		}
+		return false;
+	}
+
+	/**
+	 * Retrieves a system user by their username.
+	 *
+	 * @param username the username to query
+	 * @return the User object, or null if not found
+	 */
+	public User getUserByUsername(String username) {
+		String sql = "SELECT * FROM users WHERE username = ?";
+		try (PreparedStatement ps = conn.prepareStatement(sql)) {
+			ps.setString(1, username);
+			try (ResultSet rs = ps.executeQuery()) {
+				if (rs.next()) {
+					Integer parkId = rs.getInt("assigned_park_id");
+					if (rs.wasNull()) parkId = null;
+					return new User(
+						rs.getString("username"),
+						"", // Hide password
+						rs.getString("first_name"),
+						rs.getString("last_name"),
+						rs.getString("role"),
+						rs.getString("email"),
+						parkId,
+						rs.getBoolean("is_logged_in")
+					);
+				}
+			}
+		} catch (SQLException e) {
+			System.out.println("Error fetching user: " + e.getMessage());
+		}
+		return null;
+	}
+
 	// ==========================================
 	// SUBSCRIBER & GUIDE REGISTER
 	// ==========================================
@@ -566,9 +642,20 @@ public class DatabaseController {
 	 */
 	public List<Reservation> getReservationsByVisitorId(String visitorId) {
 		List<Reservation> list = new ArrayList<>();
-		String sql = "SELECT r.*, p.park_name FROM reservations r JOIN parks p ON r.park_id = p.park_id WHERE r.visitor_id = ?";
+		Subscriber sub = getSubscriberById(visitorId);
+		String sql;
+		if (sub != null) {
+			sql = "SELECT r.*, p.park_name FROM reservations r JOIN parks p ON r.park_id = p.park_id WHERE r.visitor_id = ? OR r.visitor_id = ?";
+		} else {
+			sql = "SELECT r.*, p.park_name FROM reservations r JOIN parks p ON r.park_id = p.park_id WHERE r.visitor_id = ?";
+		}
 		try (PreparedStatement ps = conn.prepareStatement(sql)) {
-			ps.setString(1, visitorId);
+			if (sub != null) {
+				ps.setString(1, sub.getIdNumber());
+				ps.setString(2, String.valueOf(sub.getSubscriberId()));
+			} else {
+				ps.setString(1, visitorId);
+			}
 			try (ResultSet rs = ps.executeQuery()) {
 				while (rs.next()) {//moves through the rows we got back
 					Reservation r = new Reservation(
@@ -955,7 +1042,7 @@ public class DatabaseController {
 		// Return waiting list users for the same time slot ordered by creation date
 		List<Reservation> list = new ArrayList<>();
 		//this returns the waiting list sorted by who has been waitiong the longest 
-		String sql = "SELECT r.*, p.park_name FROM reservations r JOIN parks p ON r.park_id = p.park_id WHERE r.park_id = ? AND r.visit_date_time = ? AND r.status = 'WAITING_LIST' ORDER BY r.created_at ASC";
+		String sql = "SELECT r.*, p.park_name FROM reservations r JOIN parks p ON r.park_id = p.park_id WHERE r.park_id = ? AND DATE(r.visit_date_time) = DATE(?) AND r.status = 'WAITING_LIST' ORDER BY r.created_at ASC";
 
 		try (PreparedStatement ps = conn.prepareStatement(sql)) {
 			ps.setInt(1, parkId);

@@ -325,6 +325,18 @@
 .chart-alternative-row-fill  { -fx-fill: transparent; }
 .axis { -fx-tick-label-fill: ink-soft; -fx-font-size: 11px; }
 .axis-label { -fx-text-fill: forest-deep; -fx-font-weight: bold; }
-.chart-bar { -fx-bar-fill: forest; }
-.default-color0.chart-bar { -fx-bar-fill: #2F6B4F; }
+/* Color rules for multiple series in charts to make them visually distinct */
+.default-color0.chart-bar { -fx-bar-fill: #2F6B4F; } /* Forest Green */
+.default-color0.chart-legend-item-symbol { -fx-background-color: #2F6B4F; }
+
+.default-color1.chart-bar { -fx-bar-fill: #3498DB; } /* Muted Sky Blue */
+.default-color1.chart-legend-item-symbol { -fx-background-color: #3498DB; }
+
+.default-color2.chart-bar { -fx-bar-fill: #E67E22; } /* Sunset Orange */
+.default-color2.chart-legend-item-symbol { -fx-background-color: #E67E22; }
+
+.default-color3.chart-bar { -fx-bar-fill: #9B59B6; } /* Amethyst Purple */
+.default-color3.chart-legend-item-symbol { -fx-background-color: #9B59B6; }
+
 .chart-title { -fx-text-fill: forest-deep; -fx-font-weight: bold; }
+

@@ -45,7 +45,10 @@
                             <!-- Lookup + spontaneous -->
                             <VBox spacing="12" prefWidth="350" styleClass="panel">
                                 <Label text="Identify Reservation" styleClass="panel-title"/>
-                                <TextField fx:id="entrySearchField" promptText="Enter Reservation Code or Visitor ID"/>
+                                <HBox spacing="10" alignment="CENTER_LEFT">
+                                    <TextField fx:id="entrySearchField" promptText="Reservation Code / Visitor ID" HBox.hgrow="ALWAYS"/>
+                                    <Button text="Scan QR" onAction="#onSimulateEntryQRScan" styleClass="btn-neutral"/>
+                                </HBox>
                                 <Button text="Look Up Reservation" onAction="#onLookupEntry" maxWidth="Infinity"
                                         styleClass="btn-info"/>
 
@@ -97,7 +100,8 @@
                                     <!-- Billing summary -->
                                     <VBox fx:id="billBox" spacing="8" styleClass="alert-panel" visible="false">
                                         <Label text="Bill Invoice Summary" styleClass="alert-title"/>
-                                        <Label fx:id="billTextLabel" text="Calculated Price: 0 NIS" styleClass="panel-title"/>
+                                        <Label fx:id="billTextLabel" text="Calculated Price: 0 NIS" styleClass="panel-title" wrapText="true"/>
+
                                         <Button text="Confirm Payment Cleared &amp; Check-in" onAction="#onConfirmCheckIn"
                                                 styleClass="btn-primary"/>
                                     </VBox>
@@ -117,6 +121,7 @@
                             <HBox spacing="10" alignment="CENTER_LEFT">
                                 <Label text="Visitor ID or Res. Code:" styleClass="detail-key"/>
                                 <TextField fx:id="exitSearchField" promptText="Enter code/ID" prefWidth="250"/>
+                                <Button text="Scan QR" onAction="#onSimulateExitQRScan" styleClass="btn-neutral"/>
                                 <Button text="Register Exit" onAction="#onLookupExit" styleClass="btn-danger"/>
                             </HBox>
                         </VBox>
@@ -129,7 +134,9 @@
     <bottom>
         <HBox spacing="20" alignment="CENTER_LEFT" styleClass="dash-statusbar">
             <Label fx:id="statusLabel" text="Ready" styleClass="statusbar-label" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+            <Label fx:id="simClockLabel" text="Simulated Time: --" styleClass="sim-clock"/>
             <Label fx:id="capacityLabel" text="Current Occupancy: 0 / 200 (Quota limit: 170)" styleClass="sim-clock"/>
         </HBox>
     </bottom>
+
 </BorderPane>

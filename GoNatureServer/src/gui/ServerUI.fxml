@@ -39,7 +39,7 @@
                 <TextField fx:id="dbUserField" text="root" prefWidth="150" GridPane.columnIndex="3" GridPane.rowIndex="1"/>
                 
                 <Label text="DB Password:" GridPane.columnIndex="4" GridPane.rowIndex="1"/>
-                <PasswordField fx:id="dbPasswordField" text="Amjad2002" prefWidth="150" GridPane.columnIndex="5" GridPane.rowIndex="1"/>
+                <PasswordField fx:id="dbPasswordField" text="Aa123456" prefWidth="150" GridPane.columnIndex="5" GridPane.rowIndex="1"/>
             </GridPane>
             
             <HBox spacing="10" alignment="CENTER_LEFT">

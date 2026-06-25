@@ -727,7 +727,7 @@ public class GoNatureServer extends AbstractServer  {
 	 * @return the final calculated price rounded to two decimal places
 	 */
 	private double calculatePrice(Reservation res, double basePrice,
-	        double promoDiscount) {
+			double promoDiscount) {
 		int visitors = res.getNumberOfVisitors();
 		double pricePerPerson = basePrice;
 
@@ -738,30 +738,67 @@ public class GoNatureServer extends AbstractServer  {
 		}
 
 		double groupSubtotal = 0.0;
+		StringBuilder sb = new StringBuilder();
 
 		switch (res.getReservationType()) {
 		case "INDIVIDUAL":
 			if ("CONFIRMED".equals(res.getStatus()) || "PENDING_CONFIRMATION".equals(res.getStatus()) || "WAITING_LIST".equals(res.getStatus())) {
 				// Reserved in advance: 15% discount
 				double discount = 0.15 + rateDiscount;
-				groupSubtotal = visitors * pricePerPerson * (1.0 - Math.min(discount, 1.0));
+				double baseSubtotal = visitors * pricePerPerson;
+				sb.append(String.format("Base Price: %d visitors x %.2f NIS = %.2f NIS\n", visitors, pricePerPerson, baseSubtotal));
+				sb.append("Reservation Type: Individual (Pre-registered)\n");
+				sb.append("Discounts applied:\n");
+				sb.append("  - Advance booking discount: -15%\n");
+				if (promoDiscount > 0) {
+					sb.append(String.format("  - Active Park Promotion: -%.0f%%\n", promoDiscount * 100));
+				}
+				groupSubtotal = baseSubtotal * (1.0 - Math.min(discount, 1.0));
+				sb.append(String.format("Final Price: %.2f NIS", groupSubtotal));
 			} else {
 				// Spontaneous: full price
 				double discount = rateDiscount;
-				groupSubtotal = visitors * pricePerPerson * (1.0 - Math.min(discount, 1.0));
+				double baseSubtotal = visitors * pricePerPerson;
+				sb.append(String.format("Base Price: %d visitors x %.2f NIS = %.2f NIS\n", visitors, pricePerPerson, baseSubtotal));
+				sb.append("Reservation Type: Individual (Spontaneous)\n");
+				if (promoDiscount > 0) {
+					sb.append("Discounts applied:\n");
+					sb.append(String.format("  - Active Park Promotion: -%.0f%%\n", promoDiscount * 100));
+				}
+				groupSubtotal = baseSubtotal * (1.0 - Math.min(discount, 1.0));
+				sb.append(String.format("Final Price: %.2f NIS", groupSubtotal));
 			}
 			break;
 		case "FAMILY_SUBSCRIBER":
 			// Subscribers get the individual reserved discount (15%) + subscriber discount (10% compound)
 			if ("CONFIRMED".equals(res.getStatus()) || "PENDING_CONFIRMATION".equals(res.getStatus()) || "WAITING_LIST".equals(res.getStatus())) {
 				double discount = 0.15 + rateDiscount;
-				double subtotal = visitors * pricePerPerson * (1.0 - Math.min(discount, 1.0));
-				// Additional 10% compound discount
+				double baseSubtotal = visitors * pricePerPerson;
+				sb.append(String.format("Base Price: %d visitors x %.2f NIS = %.2f NIS\n", visitors, pricePerPerson, baseSubtotal));
+				sb.append("Reservation Type: Subscriber (Pre-registered)\n");
+				sb.append("Discounts applied:\n");
+				sb.append("  - Advance booking discount: -15%\n");
+				if (promoDiscount > 0) {
+					sb.append(String.format("  - Active Park Promotion: -%.0f%%\n", promoDiscount * 100));
+				}
+				double subtotal = baseSubtotal * (1.0 - Math.min(discount, 1.0));
+				sb.append("  - Subscriber club discount: -10% (compounded)\n");
 				groupSubtotal = subtotal * 0.90;
+				sb.append(String.format("Final Price: %.2f NIS", groupSubtotal));
 			} else {
 				// Spontaneous subscriber: full price minus subscriber 10% compound
-				double subtotal = visitors * pricePerPerson * (1.0 - Math.min(rateDiscount, 1.0));
+				double discount = rateDiscount;
+				double baseSubtotal = visitors * pricePerPerson;
+				sb.append(String.format("Base Price: %d visitors x %.2f NIS = %.2f NIS\n", visitors, pricePerPerson, baseSubtotal));
+				sb.append("Reservation Type: Subscriber (Spontaneous)\n");
+				sb.append("Discounts applied:\n");
+				if (promoDiscount > 0) {
+					sb.append(String.format("  - Active Park Promotion: -%.0f%%\n", promoDiscount * 100));
+				}
+				double subtotal = baseSubtotal * (1.0 - Math.min(discount, 1.0));
+				sb.append("  - Subscriber club discount: -10% (compounded)\n");
 				groupSubtotal = subtotal * 0.90;
+				sb.append(String.format("Final Price: %.2f NIS", groupSubtotal));
 			}
 			break;
 		case "ORGANIZED_GROUP":
@@ -771,23 +808,51 @@ public class GoNatureServer extends AbstractServer  {
 				// If advance payment: additional 12% discount.
 				double baseDiscount = 0.25 + rateDiscount;
 				int payingCount = Math.max(1, visitors - 1);
-				double subtotal = payingCount * pricePerPerson * (1.0 - Math.min(baseDiscount, 1.0));
+				double baseSubtotal = payingCount * pricePerPerson;
+				sb.append(String.format("Base Price (Guide Free): %d paying visitors x %.2f NIS = %.2f NIS\n", payingCount, pricePerPerson, baseSubtotal));
+				sb.append("Reservation Type: Organized Group (Pre-registered)\n");
+				sb.append("Discounts applied:\n");
+				sb.append("  - Group booking discount: -25%\n");
+				if (promoDiscount > 0) {
+					sb.append(String.format("  - Active Park Promotion: -%.0f%%\n", promoDiscount * 100));
+				}
+				double subtotal = baseSubtotal * (1.0 - Math.min(baseDiscount, 1.0));
 
 				if ("PAID_IN_ADVANCE".equals(res.getPaymentStatus())) {
+					sb.append("  - Pre-payment discount: -12% (compounded)\n");
 					groupSubtotal = subtotal * 0.88; // 12% additional discount
 				} else {
 					groupSubtotal = subtotal;
 				}
+				sb.append(String.format("Final Price: %.2f NIS", groupSubtotal));
 			} else {
 				// Spontaneous group: 10% discount. Guide pays.
 				double discount = 0.10 + rateDiscount;
-				groupSubtotal = visitors * pricePerPerson * (1.0 - Math.min(discount, 1.0));
+				double baseSubtotal = visitors * pricePerPerson;
+				sb.append(String.format("Base Price (Guide Pays): %d visitors x %.2f NIS = %.2f NIS\n", visitors, pricePerPerson, baseSubtotal));
+				sb.append("Reservation Type: Organized Group (Spontaneous)\n");
+				sb.append("Discounts applied:\n");
+				sb.append("  - Spontaneous group discount: -10%\n");
+				if (promoDiscount > 0) {
+					sb.append(String.format("  - Active Park Promotion: -%.0f%%\n", promoDiscount * 100));
+				}
+				groupSubtotal = baseSubtotal * (1.0 - Math.min(discount, 1.0));
+				sb.append(String.format("Final Price: %.2f NIS", groupSubtotal));
 			}
 			break;
 		default:
 			groupSubtotal = visitors * pricePerPerson;
+			sb.append(String.format("Base Price: %d visitors x %.2f NIS = %.2f NIS\n", visitors, pricePerPerson, groupSubtotal));
 		}
 
-		return Math.round(groupSubtotal * 100.0) / 100.0; // Round to 2 decimal places
+		double finalRounded = Math.round(groupSubtotal * 100.0) / 100.0;
+		res.setPriceBreakdown(sb.toString());
+		return finalRounded;
+	}
+
+	private static boolean isSameDay(Timestamp ts1, Timestamp ts2) {
+		if (ts1 == null || ts2 == null) return false;
+		java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
+		return sdf.format(ts1).equals(sdf.format(ts2));
 	}
 }

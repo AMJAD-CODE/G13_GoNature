@@ -8,6 +8,8 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
@@ -19,13 +21,12 @@
 
 <!--
    GoNature — Visitor / Guide dashboard (nature theme).
-   Visual reskin only: structure, all fx:id values, onAction handlers,
-   and visible/managed/disable flags are unchanged.
+   Extended to support Profile updates, self checkout, and simulated QR codes.
 -->
 <BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="gui.VisitorController"
             stylesheets="@nature.css" styleClass="dash-root"
-            prefWidth="980" prefHeight="680">
+            prefWidth="1335" prefHeight="680">
 
     <top>
         <HBox spacing="14" alignment="CENTER_LEFT" styleClass="dash-header">
@@ -39,95 +40,165 @@
     </top>
 
     <center>
-        <SplitPane dividerPositions="0.55" orientation="HORIZONTAL">
+        <TabPane tabClosingPolicy="UNAVAILABLE">
+            <tabs>
+                <!-- Tab 1: Bookings & Operations -->
+                <Tab text="Reservations &amp; Booking">
+                    <SplitPane dividerPositions="0.55" orientation="HORIZONTAL">
 
-            <!-- Left: existing bookings & actions -->
-            <VBox styleClass="pane-wrap">
-                <VBox spacing="10" styleClass="panel" VBox.vgrow="ALWAYS">
-                    <HBox spacing="10" alignment="CENTER_LEFT">
-                        <Label text="My Active Reservations" styleClass="dash-title"/>
-                        <Button text="Refresh Table" onAction="#refreshReservations" styleClass="btn-neutral"/>
-                    </HBox>
+                        <!-- Left: existing bookings & actions -->
+                        <VBox styleClass="pane-wrap">
+                            <VBox spacing="10" styleClass="panel" VBox.vgrow="ALWAYS">
+                                <HBox spacing="10" alignment="CENTER_LEFT">
+                                    <Label text="My Active Reservations" styleClass="dash-title"/>
+                                    <Button text="Refresh Table" onAction="#refreshReservations" styleClass="btn-neutral"/>
+                                </HBox>
 
-                    <TableView fx:id="reservationsTable" VBox.vgrow="ALWAYS">
-                        <columns>
-                            <TableColumn fx:id="resIdCol" text="Res #" prefWidth="60"/>
-                            <TableColumn fx:id="parkCol" text="Park" prefWidth="120"/>
-                            <TableColumn fx:id="dateTimeCol" text="Date &amp; Time" prefWidth="140"/>
-                            <TableColumn fx:id="visitorsCol" text="Visitors" prefWidth="60"/>
-                            <TableColumn fx:id="typeCol" text="Type" prefWidth="90"/>
-                            <TableColumn fx:id="priceCol" text="Price (NIS)" prefWidth="80"/>
-                            <TableColumn fx:id="statusCol" text="Status" prefWidth="120"/>
-                        </columns>
-                    </TableView>
+                                <TableView fx:id="reservationsTable" VBox.vgrow="ALWAYS">
+                                    <columns>
+                                        <TableColumn fx:id="resIdCol" text="Res #" prefWidth="60"/>
+                                        <TableColumn fx:id="parkCol" text="Park" prefWidth="120"/>
+                                        <TableColumn fx:id="dateTimeCol" text="Date &amp; Time" prefWidth="140"/>
+                                        <TableColumn fx:id="visitorsCol" text="Visitors" prefWidth="60"/>
+                                        <TableColumn fx:id="typeCol" text="Type" prefWidth="90"/>
+                                        <TableColumn fx:id="priceCol" text="Price (NIS)" prefWidth="80"/>
+                                        <TableColumn fx:id="statusCol" text="Status" prefWidth="120"/>
+                                    </columns>
+                                </TableView>
 
-                    <HBox spacing="10">
-                        <Button fx:id="confirmButton" text="Confirm Reservation" onAction="#onConfirmReservation" disable="true"
-                                styleClass="btn-primary" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
-                        <Button fx:id="cancelButton" text="Cancel Reservation" onAction="#onCancelReservation" disable="true"
-                                styleClass="btn-danger" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
-                    </HBox>
-                </VBox>
-            </VBox>
+                                <HBox spacing="10">
+                                    <Button fx:id="confirmButton" text="Confirm Reservation" onAction="#onConfirmReservation" disable="true"
+                                            styleClass="btn-primary" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                                    <Button fx:id="checkoutButton" text="Exit Park (Checkout)" onAction="#onSelfCheckout" disable="true"
+                                            styleClass="btn-accent" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                                    <Button fx:id="cancelButton" text="Cancel Reservation" onAction="#onCancelReservation" disable="true"
+                                            styleClass="btn-danger" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                                </HBox>
+                            </VBox>
+                        </VBox>
 
-            <!-- Right: booking panel & waiting-list option -->
-            <VBox styleClass="pane-wrap">
-                <VBox spacing="14" styleClass="panel" VBox.vgrow="ALWAYS">
-                    <Label text="Book a New Reservation" styleClass="dash-title"/>
+                        <!-- Right: booking panel & waiting-list option -->
+                        <VBox styleClass="pane-wrap">
+                            <VBox spacing="14" styleClass="panel" VBox.vgrow="ALWAYS">
+                                <Label text="Book a New Reservation" styleClass="dash-title"/>
 
-                    <GridPane hgap="10" vgap="12">
-                        <columnConstraints>
-                            <ColumnConstraints prefWidth="110"/>
-                            <ColumnConstraints prefWidth="250"/>
-                        </columnConstraints>
+                                <GridPane hgap="10" vgap="12">
+                                    <columnConstraints>
+                                        <ColumnConstraints prefWidth="110"/>
+                                        <ColumnConstraints prefWidth="250"/>
+                                    </columnConstraints>
 
-                        <Label text="Select Park:" styleClass="field-label"/>
-                        <ComboBox fx:id="parkComboBox" prefWidth="250" promptText="Choose a park" GridPane.columnIndex="1"/>
+                                    <Label text="Select Park:" styleClass="field-label"/>
+                                    <ComboBox fx:id="parkComboBox" prefWidth="250" promptText="Choose a park" GridPane.columnIndex="1"/>
 
-                        <Label text="Select Date:" styleClass="field-label" GridPane.rowIndex="1"/>
-                        <DatePicker fx:id="datePicker" prefWidth="250" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                                    <Label text="Select Date:" styleClass="field-label" GridPane.rowIndex="1"/>
+                                    <DatePicker fx:id="datePicker" prefWidth="250" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
 
-                        <Label text="Select Hour:" styleClass="field-label" GridPane.rowIndex="2"/>
-                        <ComboBox fx:id="hourComboBox" prefWidth="250" promptText="Choose hour" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+                                    <Label text="Select Hour:" styleClass="field-label" GridPane.rowIndex="2"/>
+                                    <TextField fx:id="hourField" promptText="Enter time (HH:mm, e.g. 13:25)" prefWidth="250" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
 
-                        <Label text="Total Visitors:" styleClass="field-label" GridPane.rowIndex="3"/>
-                        <TextField fx:id="visitorsField" promptText="e.g. 1" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
 
-                        <Label text="Email Address:" styleClass="field-label" GridPane.rowIndex="4"/>
-                        <TextField fx:id="emailField" promptText="e.g. name@mail.com" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
+                                    <Label text="Total Visitors:" styleClass="field-label" GridPane.rowIndex="3"/>
+                                    <TextField fx:id="visitorsField" promptText="e.g. 1" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
 
-                        <Label text="Phone Number:" styleClass="field-label" GridPane.rowIndex="5"/>
-                        <TextField fx:id="phoneField" promptText="e.g. 054-XXXXXXX" GridPane.columnIndex="1" GridPane.rowIndex="5"/>
+                                    <Label text="Email Address:" styleClass="field-label" GridPane.rowIndex="4"/>
+                                    <TextField fx:id="emailField" promptText="e.g. name@mail.com" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
 
-                        <Label fx:id="prepayLabel" text="Payment Option:" styleClass="field-label" visible="false" GridPane.rowIndex="6"/>
-                        <CheckBox fx:id="prepayCheckBox" text="Pre-pay Group Booking (12% off)" visible="false" GridPane.columnIndex="1" GridPane.rowIndex="6"/>
-                    </GridPane>
+                                    <Label text="Phone Number:" styleClass="field-label" GridPane.rowIndex="5"/>
+                                    <TextField fx:id="phoneField" promptText="e.g. 054-XXXXXXX" GridPane.columnIndex="1" GridPane.rowIndex="5"/>
 
-                    <Button text="Check Availability &amp; Book" onAction="#onBookVisit" prefWidth="360"
-                            styleClass="btn-primary" maxWidth="Infinity"/>
+                                    <Label fx:id="prepayLabel" text="Payment Option:" styleClass="field-label" visible="false" GridPane.rowIndex="6"/>
+                                    <CheckBox fx:id="prepayCheckBox" text="Pre-pay Group Booking (12% off)" visible="false" GridPane.columnIndex="1" GridPane.rowIndex="6"/>
+                                </GridPane>
 
-                    <Separator/>
+                                <Button text="Check Availability &amp; Book" onAction="#onBookVisit" prefWidth="360"
+                                        styleClass="btn-primary" maxWidth="Infinity"/>
 
-                    <!-- Waiting list / alternates (toggled dynamically) -->
-                    <VBox fx:id="waitingListSection" spacing="10" visible="false" managed="false" styleClass="alert-panel">
-                        <Label text="Time Slot Full!" styleClass="alert-title"/>
-                        <Label text="No space available. You can either choose an alternative hour below, or join the waiting list for your requested slot." wrapText="true"/>
+                                <Separator/>
 
-                        <HBox spacing="10">
-                            <Button text="Join Waiting List" onAction="#onJoinWaitingList" styleClass="btn-accent"/>
-                            <Button text="View Alternate Hours" onAction="#onViewAlternates" styleClass="btn-info"/>
-                        </HBox>
+                                <!-- Simulated QR Code Section (Toggled dynamically) -->
+                                <VBox fx:id="qrCodeSection" spacing="8" visible="false" managed="false" styleClass="alert-panel" alignment="CENTER">
+                                    <Label text="Your Reservation QR Code" styleClass="alert-title"/>
+                                    <Label fx:id="qrCodeIdLabel" text="Code: 12345" styleClass="panel-title"/>
+                                    <VBox alignment="CENTER" style="-fx-background-color: white; -fx-padding: 8; -fx-border-color: #2F6B4F; -fx-border-width: 2; -fx-max-width: 110; -fx-max-height: 110;">
+                                        <Label text="▞▚▘▜&#10;▚▞▜▘&#10;▜▘▞▚&#10;▘▜▚▞" style="-fx-font-family: 'Courier New'; -fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: black; -fx-alignment: center;"/>
+                                    </VBox>
+                                    <Label text="Scan at park gate to connect" styleClass="brand-subtitle"/>
+                                </VBox>
 
-                        <TableView fx:id="alternatesTable" prefHeight="130" visible="false" managed="false">
-                            <columns>
-                                <TableColumn fx:id="altHourCol" text="Hour" prefWidth="120"/>
-                                <TableColumn fx:id="altLoadCol" text="Occupancy / Limit" prefWidth="180"/>
-                            </columns>
-                        </TableView>
+                                <!-- Waiting list / alternates (toggled dynamically) -->
+                                <VBox fx:id="waitingListSection" spacing="10" visible="false" managed="false" styleClass="alert-panel">
+                                    <Label text="Time Slot Full!" styleClass="alert-title"/>
+                                    <Label text="No space available. You can either choose an alternative hour below, or join the waiting list for your requested slot." wrapText="true"/>
+
+                                    <HBox spacing="10">
+                                        <Button text="Join Waiting List" onAction="#onJoinWaitingList" styleClass="btn-accent"/>
+                                        <Button text="View Alternate Hours" onAction="#onViewAlternates" styleClass="btn-info"/>
+                                    </HBox>
+
+                                    <TableView fx:id="alternatesTable" prefHeight="130" visible="false" managed="false">
+                                        <columns>
+                                            <TableColumn fx:id="altHourCol" text="Hour" prefWidth="120"/>
+                                            <TableColumn fx:id="altLoadCol" text="Occupancy / Limit" prefWidth="180"/>
+                                        </columns>
+                                    </TableView>
+                                </VBox>
+                            </VBox>
+                        </VBox>
+                    </SplitPane>
+                </Tab>
+
+                <!-- Tab 2: Profile Update -->
+                <Tab fx:id="profileTab" text="My Profile &amp; Settings">
+                    <VBox styleClass="pane-wrap" alignment="CENTER">
+                        <VBox spacing="15" styleClass="panel" maxWidth="500" alignment="CENTER_LEFT">
+                            <Label text="Subscriber Club Profile details" styleClass="dash-title"/>
+                            <Label text="Edit your email, phone number, family size, or credit card here." styleClass="brand-subtitle"/>
+                            
+                            <Separator styleClass="app-separator"/>
+
+                            <GridPane hgap="15" vgap="10">
+                                <columnConstraints>
+                                    <ColumnConstraints prefWidth="150"/>
+                                    <ColumnConstraints prefWidth="250"/>
+                                </columnConstraints>
+
+                                <Label text="First Name:" styleClass="detail-key"/>
+                                <Label fx:id="profileFirstName" text="-" GridPane.columnIndex="1"/>
+
+                                <Label text="Last Name:" styleClass="detail-key" GridPane.rowIndex="1"/>
+                                <Label fx:id="profileLastName" text="-" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+                                <Label text="National ID Number:" styleClass="detail-key" GridPane.rowIndex="2"/>
+                                <Label fx:id="profileIdNumber" text="-" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+                                <Label text="Subscriber ID Number:" styleClass="detail-key" GridPane.rowIndex="3"/>
+                                <Label fx:id="profileSubId" text="-" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+                                <Label text="Email Address:" styleClass="field-label" GridPane.rowIndex="4"/>
+                                <TextField fx:id="profileEmailField" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+
+                                <Label text="Phone Number:" styleClass="field-label" GridPane.rowIndex="5"/>
+                                <TextField fx:id="profilePhoneField" GridPane.rowIndex="5" GridPane.columnIndex="1"/>
+
+                                <Label text="Family Size:" styleClass="field-label" GridPane.rowIndex="6"/>
+                                <TextField fx:id="profileFamilySizeField" GridPane.rowIndex="6" GridPane.columnIndex="1"/>
+
+                                <Label text="Credit Card:" styleClass="field-label" GridPane.rowIndex="7"/>
+                                <TextField fx:id="profileCardField" GridPane.rowIndex="7" GridPane.columnIndex="1"/>
+                            </GridPane>
+
+                            <Separator styleClass="app-separator"/>
+
+                            <HBox spacing="10" alignment="CENTER_RIGHT" maxWidth="Infinity">
+                                <Label fx:id="profileStatusLabel" styleClass="status-muted" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                                <Button fx:id="profileSaveButton" text="Save Profile Changes" onAction="#onSaveProfile" styleClass="btn-primary"/>
+                            </HBox>
+                        </VBox>
                     </VBox>
-                </VBox>
-            </VBox>
-        </SplitPane>
+                </Tab>
+            </tabs>
+        </TabPane>
     </center>
 
     <bottom>

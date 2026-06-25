@@ -1,6 +1,8 @@
 package gui;
 
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
@@ -72,12 +74,24 @@ public class LoginController {
             return;
         }
 
-        // Set current user as Visitor/Subscriber
-        User visitor = new User(visitorId, "", "Visitor", "Guest", "VISITOR", "visitor@mail.com", null);
-        ClientUI.currentUser = visitor;
-        
-        statusLabel.setText("Login successful!");
-        ClientUI.setRoot("/gui/VisitorDashboard.fxml", "GoNature Portal - Visitor Panel", 1335, 680);
+        // Send validation request to server
+        Message response = ClientUI.client.sendRequest(new Message(Message.VALIDATE_VISITOR_LOGIN, visitorId));
+
+        if (Message.OK.equals(response.getAction())) {
+            // Set current user as Visitor/Subscriber
+            User visitor = new User(visitorId, "", "Visitor", "Guest", "VISITOR", "visitor@mail.com", null);
+            ClientUI.currentUser = visitor;
+            
+            statusLabel.setText("Login successful!");
+            ClientUI.setRoot("/gui/VisitorDashboard.fxml", "GoNature Portal - Visitor Panel", 1335, 680);
+        } else {
+            Alert alert = new Alert(AlertType.ERROR);
+            alert.setTitle("Access Denied");
+            alert.setHeaderText("Connection Validation Failed");
+            alert.setContentText(response.getPayload().toString());
+            alert.showAndWait();
+            statusLabel.setText(response.getPayload().toString());
+        }
     }
 
     @FXML

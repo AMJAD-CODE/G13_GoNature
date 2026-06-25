@@ -142,7 +142,8 @@
                             <HBox spacing="16" VBox.vgrow="ALWAYS">
                                 <VBox spacing="6" prefWidth="450" HBox.hgrow="ALWAYS">
                                     <Label text="Visitor Segmentation Report" styleClass="panel-title"/>
-                                    <BarChart fx:id="visitorChart" legendVisible="false" VBox.vgrow="ALWAYS">
+                                    <BarChart fx:id="visitorChart" legendVisible="true" VBox.vgrow="ALWAYS">
+
                                         <xAxis><CategoryAxis label="Visitor Type"/></xAxis>
                                         <yAxis><NumberAxis label="Number of Visitors"/></yAxis>
                                     </BarChart>
@@ -164,8 +165,10 @@
     </center>
 
     <bottom>
-        <HBox alignment="CENTER_LEFT" styleClass="dash-statusbar">
-            <Label fx:id="statusLabel" text="Ready" styleClass="statusbar-label"/>
+        <HBox spacing="20" alignment="CENTER_LEFT" styleClass="dash-statusbar">
+            <Label fx:id="statusLabel" text="Ready" styleClass="statusbar-label" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+            <Label fx:id="simClockLabel" text="Simulated Time: --" styleClass="sim-clock"/>
         </HBox>
     </bottom>
+
 </BorderPane>

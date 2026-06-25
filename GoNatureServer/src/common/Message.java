@@ -59,6 +59,11 @@ public class Message implements Serializable {
 	public static final String PING = "PING";
 	public static final String PONG = "PONG";
 
+	public static final String UPDATE_SUBSCRIBER = "UPDATE_SUBSCRIBER";
+	public static final String GET_USER_PROFILE = "GET_USER_PROFILE";
+	public static final String VALIDATE_VISITOR_LOGIN = "VALIDATE_VISITOR_LOGIN";
+	public static final String GET_PARK_RESERVATIONS = "GET_PARK_RESERVATIONS";
+
 	public static final String OK = "OK";
 	public static final String ERROR = "ERROR";
 

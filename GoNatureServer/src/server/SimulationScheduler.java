@@ -150,10 +150,13 @@ public class SimulationScheduler implements Runnable  {
 				Thread.sleep(2000);
 
 				// Process scheduler tasks
-				processReminders();
-				processConfirmations();
-				processNoShows();
-				processExits();
+				synchronized (db) {
+					processReminders();
+					processConfirmations();
+					processNoShows();
+					processExpiredWaitingList();
+					processExits();
+				}
 
 			} catch (InterruptedException e) {
 				break;
@@ -189,7 +192,7 @@ public class SimulationScheduler implements Runnable  {
 							"To: " + r.getEmail() + " | Phone: " + r.getPhoneNumber() + "\n" +
 							"Message: Hello! This is a reminder for your upcoming visit to " + r.getParkName() + "\n" +
 							"Scheduled for: " + r.getVisitDateTime() + "\n" +
-							"Please confirm your reservation within 6 seconds (2 simulation hours),\n" +
+							"Please confirm your reservation within 24 seconds (2 simulation hours),\n" +
 							"otherwise it will be automatically cancelled.\n" +
 							"========================\n";
 					log(alertMsg);
@@ -216,7 +219,7 @@ public class SimulationScheduler implements Runnable  {
 					long promotedTime = r.getSpotPromotedTime().getTime();
 					if (simNow - promotedTime >= 1 * 60 * 60 * 1000L) { // 1 simulated hour
 						db.updateReservationStatus(r.getReservationId(), "CANCELLED", new Timestamp(simNow));
-						log("Reservation #" + r.getReservationId() + " (Waiting List Promoted) AUTO-CANCELLED: No confirmation within 3 seconds (1 hour).");
+						log("Reservation #" + r.getReservationId() + " (Waiting List Promoted) AUTO-CANCELLED: No confirmation within 12 seconds (1 hour).");
 
 						// Promote next in line for this park and slot
 						promoteNextWaiting(r.getParkId(), r.getVisitDateTime());
@@ -227,7 +230,7 @@ public class SimulationScheduler implements Runnable  {
 					long reminderTime = r.getReminderSentTime().getTime();
 					if (simNow - reminderTime >= 2 * 60 * 60 * 1000L) { // 2 simulated hours
 						db.updateReservationStatus(r.getReservationId(), "CANCELLED", new Timestamp(simNow));
-						log("Reservation #" + r.getReservationId() + " AUTO-CANCELLED: No confirmation within 6 seconds (2 hours).");
+						log("Reservation #" + r.getReservationId() + " AUTO-CANCELLED: No confirmation within 24 seconds (2 hours).");
 
 						// Promote next in line since space opened up
 						promoteNextWaiting(r.getParkId(), r.getVisitDateTime());
@@ -264,6 +267,24 @@ public class SimulationScheduler implements Runnable  {
 	}
 
 	/**
+	 * Automatically cancels waiting-list reservations whose scheduled visit time has passed.
+	 */
+	private void processExpiredWaitingList() {
+		List<Reservation> activeRes = db.getPendingTimerReservations();
+		long simNow = getSimulatedTime();
+
+		for (Reservation r : activeRes) {
+			if ("WAITING_LIST".equals(r.getStatus())) {
+				long visitTime = r.getVisitDateTime().getTime();
+				if (simNow >= visitTime) {
+					db.updateReservationStatus(r.getReservationId(), "CANCELLED", new Timestamp(simNow));
+					log("Reservation #" + r.getReservationId() + " (Waiting List) AUTO-CANCELLED: Visit time " + r.getVisitDateTime() + " has passed.");
+				}
+			}
+		}
+	}
+
+	/**
 	 * Promotes the next eligible reservation from the waiting list.
 	 *
 	 * <p>If capacity becomes available, the first waiting-list
@@ -279,7 +300,7 @@ public class SimulationScheduler implements Runnable  {
 
 		// Check if there is capacity available now to promote
 		for (Reservation candidate : waiting) {
-			if (db.checkCapacityAvailable(parkId, visitTime, candidate.getNumberOfVisitors())) {
+			if (db.checkCapacityAvailable(parkId, candidate.getVisitDateTime(), candidate.getNumberOfVisitors())) {
 				long simNow = getSimulatedTime();
 				db.updateReservationStatus(candidate.getReservationId(), "PENDING_CONFIRMATION", new Timestamp(simNow));
 				db.setSpotPromoted(candidate.getReservationId(), new Timestamp(simNow));
@@ -289,7 +310,7 @@ public class SimulationScheduler implements Runnable  {
 						"To: " + candidate.getEmail() + " | Phone: " + candidate.getPhoneNumber() + "\n" +
 						"Message: Space is now available for your visit to " + candidate.getParkName() + "!\n" +
 						"Scheduled for: " + candidate.getVisitDateTime() + "\n" +
-						"Please confirm your reservation within 3 seconds (1 simulation hour),\n" +
+						"Please confirm your reservation within 12 seconds (1 simulation hour),\n" +
 						"otherwise the spot will pass to the next visitor in queue.\n" +
 						"========================\n";
 				log(alertMsg);
@@ -316,14 +337,23 @@ public class SimulationScheduler implements Runnable  {
 					common.Park p = db.getPark(r.getParkId());
 					if (p != null) {
 						long stayDurationMs = p.getStayDuration() * 60L * 60 * 1000L;
-						if (simNow - entryTime.getTime() >= stayDurationMs) {
+						
+						java.util.Calendar cal = java.util.Calendar.getInstance();
+						cal.setTimeInMillis(simNow);
+						int hour = cal.get(java.util.Calendar.HOUR_OF_DAY);
+						
+						boolean expired = (simNow - entryTime.getTime() >= stayDurationMs);
+						boolean parkClosed = (hour >= 20 || hour < 8);
+						
+						if (expired || parkClosed) {
 							db.updateReservationStatus(r.getReservationId(), "COMPLETED", new Timestamp(simNow));
 
 							int parkId = r.getParkId();
 							int occupancy = db.getParkCurrentOccupancy(parkId);
 							db.logOccupancyChange(parkId, occupancy, new Timestamp(simNow));
 
-							log("Reservation #" + r.getReservationId() + " (Visitor Exit) AUTO-COMPLETED: Stay duration of " + p.getStayDuration() + " hours expired.");
+							String reason = expired ? "Stay duration of " + p.getStayDuration() + " hours expired" : "Park closing time (20:00) reached";
+							log("Reservation #" + r.getReservationId() + " (Visitor Exit) AUTO-COMPLETED: " + reason + ".");
 
 							// Promote next in waiting list since space freed
 							promoteNextWaiting(parkId, r.getVisitDateTime());

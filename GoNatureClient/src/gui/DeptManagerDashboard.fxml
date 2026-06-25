@@ -133,8 +133,10 @@
     </center>
 
     <bottom>
-        <HBox alignment="CENTER_LEFT" styleClass="dash-statusbar">
-            <Label fx:id="statusLabel" text="Ready" styleClass="statusbar-label"/>
+        <HBox spacing="20" alignment="CENTER_LEFT" styleClass="dash-statusbar">
+            <Label fx:id="statusLabel" text="Ready" styleClass="statusbar-label" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+            <Label fx:id="simClockLabel" text="Simulated Time: --" styleClass="sim-clock"/>
         </HBox>
     </bottom>
+
 </BorderPane>

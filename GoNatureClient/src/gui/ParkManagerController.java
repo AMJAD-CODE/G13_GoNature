@@ -28,6 +28,14 @@ public class ParkManagerController {
     @FXML
     private Label statusLabel;
 
+    @FXML
+    private Label simClockLabel;
+    private javafx.animation.Timeline clockTimeline;
+    private long simStartMs = 0;
+    private double simSpeedup = 1.0;
+    private long clientSyncTime = 0;
+
+
     // Parameters Config
     @FXML
     private Label curCapacity;
@@ -86,7 +94,11 @@ public class ParkManagerController {
 
         // Load parameter values
         refreshParameters();
+
+        // Init simulated clock
+        initSimClock();
     }
+
 
     private void refreshParameters() {
         if (ClientUI.currentUser.getAssignedParkId() == null) {
@@ -226,13 +238,21 @@ public class ParkManagerController {
             @SuppressWarnings("unchecked")
             Map<String, Integer> map = (Map<String, Integer>) vResp.getPayload();
             
-            XYChart.Series<String, Number> series = new XYChart.Series<>();
-            series.setName("Visitors count");
-            series.getData().add(new XYChart.Data<>("Individuals", map.getOrDefault("INDIVIDUAL", 0)));
-            series.getData().add(new XYChart.Data<>("Subscribers", map.getOrDefault("FAMILY_SUBSCRIBER", 0)));
-            series.getData().add(new XYChart.Data<>("Groups", map.getOrDefault("ORGANIZED_GROUP", 0)));
-            visitorChart.getData().add(series);
+            XYChart.Series<String, Number> indSeries = new XYChart.Series<>();
+            indSeries.setName("Individuals");
+            indSeries.getData().add(new XYChart.Data<>("Individuals", map.getOrDefault("INDIVIDUAL", 0)));
+
+            XYChart.Series<String, Number> subSeries = new XYChart.Series<>();
+            subSeries.setName("Subscribers");
+            subSeries.getData().add(new XYChart.Data<>("Subscribers", map.getOrDefault("FAMILY_SUBSCRIBER", 0)));
+
+            XYChart.Series<String, Number> grpSeries = new XYChart.Series<>();
+            grpSeries.setName("Groups");
+            grpSeries.getData().add(new XYChart.Data<>("Groups", map.getOrDefault("ORGANIZED_GROUP", 0)));
+
+            visitorChart.getData().addAll(indSeries, subSeries, grpSeries);
         }
+
 
         // Load occupancy usage report
         Message uResp = ClientUI.client.sendRequest(new Message(Message.GET_MONTHLY_USAGE_REPORT, payload));
@@ -257,10 +277,51 @@ public class ParkManagerController {
 
     @FXML
     public void onLogout() {
+        if (clockTimeline != null) {
+            clockTimeline.stop();
+        }
         ClientUI.client.sendRequest(new Message(Message.LOGOUT, ClientUI.currentUser.getUsername()));
         ClientUI.currentUser = null;
         ClientUI.setRoot("/gui/LoginUI.fxml", "GoNature - Login Portal", 500, 670);
     }
+
+    private void initSimClock() {
+        Message response = ClientUI.client.sendRequest(new Message(Message.GET_SIMULATION_TIME, null));
+        if (Message.OK.equals(response.getAction())) {
+            Object[] payload = (Object[]) response.getPayload();
+            simStartMs = (Long) payload[0];
+            simSpeedup = (Double) payload[1];
+            clientSyncTime = System.currentTimeMillis();
+            startClockTimeline();
+        }
+    }
+
+    private void startClockTimeline() {
+        if (clockTimeline != null) {
+            clockTimeline.stop();
+        }
+        clockTimeline = new javafx.animation.Timeline(new javafx.animation.KeyFrame(javafx.util.Duration.millis(250), event -> {
+            long now = System.currentTimeMillis();
+            long elapsedReal = now - clientSyncTime;
+            long elapsedSim = (long)(elapsedReal * simSpeedup);
+            long currentSim = getSimulatedTimeAtSync() + elapsedSim;
+            
+            java.sql.Timestamp ts = new java.sql.Timestamp(currentSim);
+            java.time.LocalDateTime ldt = ts.toLocalDateTime();
+            String formatted = ldt.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
+            if (simClockLabel != null) {
+                simClockLabel.setText("Simulated Time: " + formatted);
+            }
+        }));
+        clockTimeline.setCycleCount(javafx.animation.Timeline.INDEFINITE);
+        clockTimeline.play();
+    }
+
+    private long getSimulatedTimeAtSync() {
+        long elapsedReal = clientSyncTime - simStartMs;
+        return simStartMs + (long)(elapsedReal * simSpeedup);
+    }
+
 
     private void showAlert(String title, String header, String content) {
         Alert alert = new Alert(AlertType.INFORMATION);

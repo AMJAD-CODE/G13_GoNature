@@ -40,8 +40,7 @@ public class User implements Serializable {
 	 * @param assignedParkId the identifier of the park assigned to the user,
 	 *                       or null if no park is assigned
 	 */
-	public User(String username, String password, String firstName, String lastName, String role, String email, Integer assignedParkId) {
-
+		public User(String username, String password, String firstName, String lastName, String role, String email, Integer assignedParkId) {
 		this.username = username;
 		this.password = password;
 		this.firstName = firstName;
@@ -50,7 +49,30 @@ public class User implements Serializable {
 		this.email = email;
 		this.assignedParkId = assignedParkId;
 		this.isLoggedIn = false;
+	}
 
+	/**
+	 * Creates a user with the specified details, including login status.
+	 *
+	 * @param username the user's username
+	 * @param password the user's password
+	 * @param firstName the user's first name
+	 * @param lastName the user's last name
+	 * @param role the user's role in the system
+	 * @param email the user's email address
+	 * @param assignedParkId the identifier of the park assigned to the user,
+	 *                       or null if no park is assigned
+	 * @param isLoggedIn the login status
+	 */
+	public User(String username, String password, String firstName, String lastName, String role, String email, Integer assignedParkId, boolean isLoggedIn) {
+		this.username = username;
+		this.password = password;
+		this.firstName = firstName;
+		this.lastName = lastName;
+		this.role = role;
+		this.email = email;
+		this.assignedParkId = assignedParkId;
+		this.isLoggedIn = isLoggedIn;
 	}
 
 

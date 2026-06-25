@@ -4,13 +4,16 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import client.ClientUI;
 import common.Message;
@@ -27,6 +30,14 @@ public class EmployeeController {
     private Label capacityLabel;
     @FXML
     private Label statusLabel;
+
+    @FXML
+    private Label simClockLabel;
+    private javafx.animation.Timeline clockTimeline;
+    private long simStartMs = 0;
+    private double simSpeedup = 1.0;
+    private long clientSyncTime = 0;
+
 
     // Entrance lookup
     @FXML
@@ -74,7 +85,11 @@ public class EmployeeController {
         
         // Load assigned park details
         refreshCapacity();
+
+        // Init simulated clock
+        initSimClock();
     }
+
 
     @FXML
     public void refreshCapacity() {
@@ -122,6 +137,19 @@ public class EmployeeController {
 
         Reservation found = null;
         
+        // Fetch simulated time from server to validate the date
+        Message timeResp = ClientUI.client.sendRequest(new Message(Message.GET_SIMULATION_TIME, null));
+        Timestamp simToday = new Timestamp(System.currentTimeMillis());
+        if (Message.OK.equals(timeResp.getAction())) {
+            Object[] tPayload = (Object[]) timeResp.getPayload();
+            long simStartMs = (Long) tPayload[0];
+            double simSpeedup = (Double) tPayload[1];
+            long elapsedReal = System.currentTimeMillis() - simStartMs;
+            long currentSim = simStartMs + (long)(elapsedReal * simSpeedup);
+            simToday = new Timestamp(currentSim);
+        }
+        final Timestamp finalSimToday = simToday;
+        
         // Try searching by Reservation Code first
         try {
             int code = Integer.parseInt(search);
@@ -138,11 +166,24 @@ public class EmployeeController {
                 @SuppressWarnings("unchecked")
                 List<Reservation> resList = (List<Reservation>) resp.getPayload();
                 for (Reservation r : resList) {
-                    if ("CONFIRMED".equals(r.getStatus()) || "PENDING_CONFIRMATION".equals(r.getStatus())) {
-                        found = r;
-                        break;
+                    if (("CONFIRMED".equals(r.getStatus()) || "PENDING_CONFIRMATION".equals(r.getStatus()))) {
+                        long visitTime = r.getVisitDateTime().getTime();
+                        long simTime = finalSimToday.getTime();
+                        if (simTime >= visitTime - 30 * 60 * 1000L && simTime <= visitTime + 90 * 60 * 1000L) {
+                            found = r;
+                            break;
+                        }
                     }
                 }
+            }
+        }
+
+        if (found != null) {
+            long visitTime = found.getVisitDateTime().getTime();
+            long simTime = finalSimToday.getTime();
+            if (simTime < visitTime - 30 * 60 * 1000L || simTime > visitTime + 90 * 60 * 1000L) {
+                statusLabel.setText("ERROR: Check-in is only allowed between 30 minutes before and 90 minutes after the scheduled slot.");
+                return;
             }
         }
 
@@ -198,9 +239,11 @@ public class EmployeeController {
 
         if (Message.OK.equals(response.getAction())) {
             Reservation checkedIn = (Reservation) response.getPayload();
-            billTextLabel.setText("Invoice Total: " + checkedIn.getPrice() + " NIS (" + checkedIn.getReservationType() + ")");
+            String breakdown = (checkedIn.getPriceBreakdown() != null) ? "\n" + checkedIn.getPriceBreakdown() : "";
+            billTextLabel.setText("Invoice Total: " + checkedIn.getPrice() + " NIS (" + checkedIn.getReservationType() + ")" + breakdown);
             billBox.setVisible(true);
             statusLabel.setText("Entry registered. Bill generated.");
+
         } else {
             showAlert("Error", "Check-in Failed", response.getPayload().toString());
         }
@@ -245,6 +288,27 @@ public class EmployeeController {
             return;
         }
 
+        // Get simulated time from server to validate the operating hours
+        Message timeResp = ClientUI.client.sendRequest(new Message(Message.GET_SIMULATION_TIME, null));
+        Timestamp simToday = new Timestamp(System.currentTimeMillis());
+        if (Message.OK.equals(timeResp.getAction())) {
+            Object[] tPayload = (Object[]) timeResp.getPayload();
+            long simStartMs = (Long) tPayload[0];
+            double simSpeedup = (Double) tPayload[1];
+            long elapsedReal = System.currentTimeMillis() - simStartMs;
+            long currentSim = simStartMs + (long)(elapsedReal * simSpeedup);
+            simToday = new Timestamp(currentSim);
+        }
+        
+        java.util.Calendar cal = java.util.Calendar.getInstance();
+        cal.setTimeInMillis(simToday.getTime());
+        int hour = cal.get(java.util.Calendar.HOUR_OF_DAY);
+        if (hour < 8 || hour > 20) {
+            statusLabel.setText("ERROR: Park is closed. Spontaneous entry only allowed between 08:00 and 20:00.");
+            showAlert("Entry Denied", "Park Closed", "Spontaneous entries are only permitted during active operating hours (08:00 - 20:00).");
+            return;
+        }
+
         int count;
         try {
             count = Integer.parseInt(countStr);
@@ -260,12 +324,14 @@ public class EmployeeController {
 
         if (Message.OK.equals(response.getAction())) {
             Reservation saved = (Reservation) response.getPayload();
+            String breakdown = (saved.getPriceBreakdown() != null) ? "\n\nPrice Calculation Breakdown:\n" + saved.getPriceBreakdown() : "";
             showAlert("Spontaneous Entry Approved", "Payment Invoice Generated",
                       "Entry Approved!\n" +
                       "Generated Code: " + saved.getReservationId() + "\n" +
                       "Type: " + saved.getReservationType() + "\n" +
-                      "Bill Invoice Total: " + saved.getPrice() + " NIS.\n" +
+                      "Bill Invoice Total: " + saved.getPrice() + " NIS." + breakdown + "\n\n" +
                       "Payment is collected at the desk.");
+
             
             spontIdField.clear();
             spontCountField.clear();
@@ -276,10 +342,144 @@ public class EmployeeController {
     }
 
     @FXML
+    public void onSimulateEntryQRScan() {
+        if (currentPark == null) {
+            statusLabel.setText("ERROR: No active park loaded.");
+            return;
+        }
+        
+        // Fetch all pending/confirmed reservations for this park
+        Message response = ClientUI.client.sendRequest(new Message(Message.GET_PARK_RESERVATIONS, currentPark.getParkId()));
+        if (Message.OK.equals(response.getAction())) {
+            @SuppressWarnings("unchecked")
+            List<Reservation> list = (List<Reservation>) response.getPayload();
+            List<String> options = new ArrayList<>();
+            for (Reservation r : list) {
+                if ("CONFIRMED".equals(r.getStatus()) || "PENDING_CONFIRMATION".equals(r.getStatus())) {
+                    options.add("Code: " + r.getReservationId() + " (Visitor: " + r.getVisitorId() + ", Size: " + r.getNumberOfVisitors() + ")");
+                }
+            }
+            
+            if (options.isEmpty()) {
+                showAlert("QR Code Scanner Simulator", "No Reservations Found", "There are no confirmed/pending reservations for today to scan.");
+                return;
+            }
+            
+            ChoiceDialog<String> dialog = new ChoiceDialog<>(options.get(0), options);
+            dialog.setTitle("QR Code Scanner Simulator - Entrance");
+            dialog.setHeaderText("Simulate scanning visitor QR Code");
+            dialog.setContentText("Select reservation to scan:");
+            
+            Optional<String> result = dialog.showAndWait();
+            if (result.isPresent()) {
+                // Parse out the code
+                String sel = result.get();
+                String codeStr = sel.substring(6, sel.indexOf(" ("));
+                entrySearchField.setText(codeStr);
+                statusLabel.setText("QR Code scanned successfully: Reservation Code " + codeStr);
+                // Auto trigger lookup
+                onLookupEntry();
+            }
+        } else {
+            showAlert("Error", "Failed to fetch reservations", response.getPayload().toString());
+        }
+    }
+
+    @FXML
+    public void onSimulateExitQRScan() {
+        if (currentPark == null) {
+            statusLabel.setText("ERROR: No active park loaded.");
+            return;
+        }
+        
+        // Fetch all active/checked-in visits
+        Message response = ClientUI.client.sendRequest(new Message(Message.GET_PARK_RESERVATIONS, currentPark.getParkId()));
+        if (Message.OK.equals(response.getAction())) {
+            @SuppressWarnings("unchecked")
+            List<Reservation> list = (List<Reservation>) response.getPayload();
+            List<String> options = new ArrayList<>();
+            for (Reservation r : list) {
+                if ("ACTIVE".equals(r.getStatus())) {
+                    options.add("Code: " + r.getReservationId() + " (Visitor: " + r.getVisitorId() + ", Size: " + r.getNumberOfVisitors() + ")");
+                }
+            }
+            
+            if (options.isEmpty()) {
+                showAlert("QR Code Scanner Simulator", "No Active Visits", "There are no visitors currently inside the park (ACTIVE status) to scan.");
+                return;
+            }
+            
+            ChoiceDialog<String> dialog = new ChoiceDialog<>(options.get(0), options);
+            dialog.setTitle("QR Code Scanner Simulator - Exit");
+            dialog.setHeaderText("Simulate scanning visitor QR Code for Checkout");
+            dialog.setContentText("Select visitor to scan out:");
+            
+            Optional<String> result = dialog.showAndWait();
+            if (result.isPresent()) {
+                // Parse out the code
+                String sel = result.get();
+                String codeStr = sel.substring(6, sel.indexOf(" ("));
+                exitSearchField.setText(codeStr);
+                statusLabel.setText("Exit QR Code scanned successfully: " + codeStr);
+                // Auto trigger exit registration
+                onLookupExit();
+            }
+        } else {
+            showAlert("Error", "Failed to fetch reservations", response.getPayload().toString());
+        }
+    }
+
+    @FXML
     public void onLogout() {
+        if (clockTimeline != null) {
+            clockTimeline.stop();
+        }
         ClientUI.client.sendRequest(new Message(Message.LOGOUT, ClientUI.currentUser.getUsername()));
         ClientUI.currentUser = null;
         ClientUI.setRoot("/gui/LoginUI.fxml", "GoNature - Login Portal", 500, 670);
+    }
+
+    private void initSimClock() {
+        Message response = ClientUI.client.sendRequest(new Message(Message.GET_SIMULATION_TIME, null));
+        if (Message.OK.equals(response.getAction())) {
+            Object[] payload = (Object[]) response.getPayload();
+            simStartMs = (Long) payload[0];
+            simSpeedup = (Double) payload[1];
+            clientSyncTime = System.currentTimeMillis();
+            startClockTimeline();
+        }
+    }
+
+    private void startClockTimeline() {
+        if (clockTimeline != null) {
+            clockTimeline.stop();
+        }
+        clockTimeline = new javafx.animation.Timeline(new javafx.animation.KeyFrame(javafx.util.Duration.millis(250), event -> {
+            long now = System.currentTimeMillis();
+            long elapsedReal = now - clientSyncTime;
+            long elapsedSim = (long)(elapsedReal * simSpeedup);
+            long currentSim = getSimulatedTimeAtSync() + elapsedSim;
+            
+            java.sql.Timestamp ts = new java.sql.Timestamp(currentSim);
+            java.time.LocalDateTime ldt = ts.toLocalDateTime();
+            String formatted = ldt.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
+            if (simClockLabel != null) {
+                simClockLabel.setText("Simulated Time: " + formatted);
+            }
+        }));
+        clockTimeline.setCycleCount(javafx.animation.Timeline.INDEFINITE);
+        clockTimeline.play();
+    }
+
+    private long getSimulatedTimeAtSync() {
+        long elapsedReal = clientSyncTime - simStartMs;
+        return simStartMs + (long)(elapsedReal * simSpeedup);
+    }
+
+
+    private boolean isSameDay(Timestamp ts1, Timestamp ts2) {
+        if (ts1 == null || ts2 == null) return false;
+        return new SimpleDateFormat("yyyy-MM-dd").format(ts1).equals(new SimpleDateFormat("yyyy-MM-dd").format(ts2));
     }
 
     private void showAlert(String title, String header, String content) {

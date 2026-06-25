@@ -32,6 +32,8 @@ import common.Message;
 import common.Park;
 import common.Reservation;
 import common.User;
+import common.Subscriber;
+import javafx.scene.control.Tab;
 
 public class VisitorController {
 
@@ -57,7 +59,39 @@ public class VisitorController {
     @FXML
     private Button confirmButton;
     @FXML
+    private Button checkoutButton;
+    @FXML
     private Button cancelButton;
+
+    // QR Code fields
+    @FXML
+    private VBox qrCodeSection;
+    @FXML
+    private Label qrCodeIdLabel;
+
+    // Profile fields
+    @FXML
+    private Tab profileTab;
+    @FXML
+    private Label profileFirstName;
+    @FXML
+    private Label profileLastName;
+    @FXML
+    private Label profileIdNumber;
+    @FXML
+    private Label profileSubId;
+    @FXML
+    private TextField profileEmailField;
+    @FXML
+    private TextField profilePhoneField;
+    @FXML
+    private TextField profileFamilySizeField;
+    @FXML
+    private TextField profileCardField;
+    @FXML
+    private Label profileStatusLabel;
+    @FXML
+    private Button profileSaveButton;
 
     // Booking Fields
     @FXML
@@ -65,7 +99,8 @@ public class VisitorController {
     @FXML
     private DatePicker datePicker;
     @FXML
-    private ComboBox<String> hourComboBox;
+    private TextField hourField;
+
     @FXML
     private TextField visitorsField;
     @FXML
@@ -119,7 +154,7 @@ public class VisitorController {
         
         dateTimeCol.setCellValueFactory(cellData -> {
             Timestamp ts = cellData.getValue().getVisitDateTime();
-            String formatted = new SimpleDateFormat("yyyy-MM-dd HH:mm").format(ts);
+            String formatted = new SimpleDateFormat("dd/MM/yyyy HH:mm").format(ts);
             return new SimpleStringProperty(formatted);
         });
         
@@ -135,28 +170,38 @@ public class VisitorController {
         altLoadCol.setCellValueFactory(new PropertyValueFactory<>("load"));
         alternatesTable.setItems(alternatesList);
 
-        // Enable buttons on select
+        // Enable buttons on select and show QR code
         reservationsTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSel, newSel) -> {
             if (newSel != null) {
                 String status = newSel.getStatus();
                 confirmButton.setDisable(!"PENDING_CONFIRMATION".equals(status));
+                checkoutButton.setDisable(!"ACTIVE".equals(status));
                 cancelButton.setDisable("CANCELLED".equals(status) || "COMPLETED".equals(status) || "ACTIVE".equals(status));
+                
+                // Show QR code for the reservation
+                qrCodeIdLabel.setText("Code: " + newSel.getReservationId());
+                qrCodeSection.setVisible(true);
+                qrCodeSection.setManaged(true);
             } else {
                 confirmButton.setDisable(true);
+                checkoutButton.setDisable(true);
                 cancelButton.setDisable(true);
+                qrCodeSection.setVisible(false);
+                qrCodeSection.setManaged(false);
             }
         });
 
-        // Load hours (08:00 - 20:00)
-        for (int h = 8; h <= 20; h++) {
-            hourComboBox.getItems().add(String.format("%02d:00", h));
-        }
+        // Custom text field time entry is used instead of hourComboBox.
+
 
         // Load parks
         loadParks();
         
         // Refresh reservations
         refreshReservations();
+        
+        // Load profile info
+        loadProfileInfo();
         
         // Init simulated clock
         initSimClock();
@@ -227,7 +272,7 @@ public class VisitorController {
     public void onBookVisit() {
         Park park = parkComboBox.getValue();
         LocalDate date = datePicker.getValue();
-        String hour = hourComboBox.getValue();
+        String hour = (hourField.getText() != null) ? hourField.getText().trim() : "";
         String visitorsStr = visitorsField.getText().trim();
         String email = emailField.getText().trim();
         String phone = phoneField.getText().trim();
@@ -235,9 +280,64 @@ public class VisitorController {
         //===========
         // step 1 validate all inputs
         //===========
-        if (park == null || date == null || hour == null || visitorsStr.isEmpty() || email.isEmpty() || phone.isEmpty()) {
+        if (park == null || date == null || hour.isEmpty() || visitorsStr.isEmpty() || email.isEmpty() || phone.isEmpty()) {
             statusLabel.setText("ERROR: Please fill in all booking fields.");
             return;
+        }
+
+        if (!email.contains("@")) {
+            statusLabel.setText("ERROR: Email must contain '@' character.");
+            return;
+        }
+
+        String cleanPhone = phone.replace("-", "").replace(" ", "");
+        if (cleanPhone.length() != 10 || !cleanPhone.matches("\\d+")) {
+            statusLabel.setText("ERROR: Phone number must contain exactly 10 digits.");
+            return;
+        }
+
+        // Parse custom time format (HH:mm)
+        String[] parts = hour.split(":");
+        if (parts.length != 2) {
+            statusLabel.setText("ERROR: Time must be in HH:mm format (e.g. 13:25).");
+            return;
+        }
+
+        int h, m;
+        try {
+            h = Integer.parseInt(parts[0]);
+            m = Integer.parseInt(parts[1]);
+            if (h < 0 || h > 23 || m < 0 || m > 59) throw new NumberFormatException();
+        } catch (NumberFormatException e) {
+            statusLabel.setText("ERROR: Invalid hour or minute entered.");
+            return;
+        }
+
+        double totalHours = h + (m / 60.0);
+        if (totalHours < 8.0 || totalHours > 20.0) {
+            statusLabel.setText("ERROR: Park operating hours are 08:00 to 20:00.");
+            return;
+        }
+
+        // Stay time limit: latest entry is 20:00 - (stay_duration - 2)
+        int stayDuration = park.getStayDuration();
+        double maxAllowedEntry = 20.0 - (stayDuration - 2.0);
+        if (totalHours > maxAllowedEntry) {
+            int maxHour = (int) maxAllowedEntry;
+            int maxMin = (int) ((maxAllowedEntry - maxHour) * 60);
+            statusLabel.setText(String.format("ERROR: Latest entry time is %02d:%02d to allow at least 2 hours stay before closing.", maxHour, maxMin));
+            return;
+        }
+
+        // Short stay warning: entering after 20:00 - stay_duration
+        double actualStay = 20.0 - totalHours;
+        if (totalHours > 20.0 - stayDuration) {
+            boolean proceed = showConfirmation("Shortened Stay Warning", "Stay Time Not Full",
+                String.format("Notice: The park closes at 20:00. Your stay will be limited to %.1f hours instead of the standard %d hours.\n\nDo you want to proceed?", actualStay, stayDuration));
+            if (!proceed) {
+                statusLabel.setText("Booking cancelled by user.");
+                return;
+            }
         }
 
         int visitors;
@@ -254,14 +354,14 @@ public class VisitorController {
         }
 
         // Construct Timestamp
-        int h = Integer.parseInt(hour.substring(0, 2));
-        LocalDateTime ldt = LocalDateTime.of(date, LocalTime.of(h, 0));
+        LocalDateTime ldt = LocalDateTime.of(date, LocalTime.of(h, m));
         Timestamp visitTs = Timestamp.valueOf(ldt);
 
         if (visitTs.before(new Timestamp(System.currentTimeMillis()))) {
             statusLabel.setText("ERROR: Selected date & time is in the past.");
             return;
         }
+
 
         //===========
         // step 1 done
@@ -320,12 +420,14 @@ public class VisitorController {
         Message response = ClientUI.client.sendRequest(new Message(Message.CREATE_RESERVATION, res));
         if (Message.OK.equals(response.getAction())) {
             Reservation saved = (Reservation) response.getPayload();
+            String breakdown = (saved.getPriceBreakdown() != null) ? "\n\nPrice Calculation Breakdown:\n" + saved.getPriceBreakdown() : "";
             showAlert("Success", "Booking Confirmed", 
                       "Reservation #" + saved.getReservationId() + " created successfully.\n" +
-                      "Total Price: " + saved.getPrice() + " NIS.\n" +
-                      "Please remember to confirm 1 simulation day (72 seconds) before, when prompted.");
+                      "Total Price: " + saved.getPrice() + " NIS." + breakdown + "\n\n" +
+                      "Please remember to confirm 1 simulation day (288 seconds) before, when prompted.");
             clearBookingFields();
             refreshReservations();
+
             //if the slot is full
         } else if ("FULL".equals(response.getPayload())) {
             // Show waiting list section
@@ -401,7 +503,8 @@ public class VisitorController {
     private void clearBookingFields() {
         parkComboBox.setValue(null);
         datePicker.setValue(null);
-        hourComboBox.setValue(null);
+        hourField.clear();
+
         visitorsField.clear();
         emailField.clear();
         phoneField.clear();
@@ -420,6 +523,14 @@ public class VisitorController {
         }
         ClientUI.currentUser = null;
         ClientUI.setRoot("/gui/LoginUI.fxml", "GoNature - Login Portal", 500, 670);
+    }
+    private boolean showConfirmation(String title, String header, String content) {
+        javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.CONFIRMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(header);
+        alert.setContentText(content);
+        java.util.Optional<javafx.scene.control.ButtonType> result = alert.showAndWait();
+        return result.isPresent() && result.get() == javafx.scene.control.ButtonType.OK;
     }
 
     private void initSimClock() {
@@ -449,7 +560,7 @@ public class VisitorController {
             
             java.sql.Timestamp ts = new java.sql.Timestamp(currentSim);
             java.time.LocalDateTime ldt = ts.toLocalDateTime();
-            String formatted = ldt.format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            String formatted = ldt.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
             simClockLabel.setText("Simulated Time: " + formatted);
             
             // Auto-refresh table every 8 ticks (2 seconds)
@@ -485,7 +596,7 @@ public class VisitorController {
                                       "Action Required: Confirm Reservation", 
                                       "Your reservation #" + r.getReservationId() + " to " + r.getParkName() + 
                                       " requires confirmation.\n" +
-                                      "Please select it in the table and click 'Confirm Reservation' within 6 seconds!");
+                                      "Please select it in the table and click 'Confirm Reservation' within 24 seconds!");
                         });
                     }
                 }
@@ -529,5 +640,108 @@ public class VisitorController {
 
         public String getHour() { return hour; }
         public String getLoad() { return load; }
+    }
+
+    private Subscriber currentSubProfile = null;
+
+    private void loadProfileInfo() {
+        String visitorId = ClientUI.currentUser.getUsername();
+        
+        // Reset/Clear fields
+        profileFirstName.setText("-");
+        profileLastName.setText("-");
+        profileIdNumber.setText("-");
+        profileSubId.setText("-");
+        profileEmailField.setText("");
+        profilePhoneField.setText("");
+        profileFamilySizeField.setText("");
+        profileCardField.setText("");
+        
+        Message response = ClientUI.client.sendRequest(new Message(Message.GET_USER_PROFILE, visitorId));
+        if (Message.OK.equals(response.getAction()) && response.getPayload() instanceof Subscriber) {
+            currentSubProfile = (Subscriber) response.getPayload();
+            profileFirstName.setText(currentSubProfile.getFirstName());
+            profileLastName.setText(currentSubProfile.getLastName());
+            profileIdNumber.setText(currentSubProfile.getIdNumber());
+            profileSubId.setText(String.valueOf(currentSubProfile.getSubscriberId()));
+            profileEmailField.setText(currentSubProfile.getEmail());
+            profilePhoneField.setText(currentSubProfile.getPhoneNumber());
+            profileFamilySizeField.setText(String.valueOf(currentSubProfile.getFamilySize()));
+            profileCardField.setText(currentSubProfile.getCreditCardNumber() != null ? currentSubProfile.getCreditCardNumber() : "");
+            
+            profileTab.setDisable(false);
+        } else {
+            profileTab.setDisable(true);
+            profileStatusLabel.setText("Profile features only available for registered subscribers.");
+        }
+    }
+
+    @FXML
+    public void onSaveProfile() {
+        if (currentSubProfile == null) return;
+        
+        String email = profileEmailField.getText().trim();
+        String phone = profilePhoneField.getText().trim();
+        String sizeStr = profileFamilySizeField.getText().trim();
+        String card = profileCardField.getText().trim();
+        
+        if (email.isEmpty() || phone.isEmpty() || sizeStr.isEmpty()) {
+            profileStatusLabel.setText("Please fill in email, phone, and family size.");
+            profileStatusLabel.setStyle("-fx-text-fill: #e74c3c;");
+            return;
+        }
+
+        if (!email.contains("@")) {
+            profileStatusLabel.setText("Email must contain '@' character.");
+            profileStatusLabel.setStyle("-fx-text-fill: #e74c3c;");
+            return;
+        }
+
+        String cleanPhone = phone.replace("-", "").replace(" ", "");
+        if (cleanPhone.length() != 10 || !cleanPhone.matches("\\d+")) {
+            profileStatusLabel.setText("Phone number must contain exactly 10 digits.");
+            profileStatusLabel.setStyle("-fx-text-fill: #e74c3c;");
+            return;
+        }
+        
+        int familySize;
+        try {
+            familySize = Integer.parseInt(sizeStr);
+            if (familySize <= 0) throw new NumberFormatException();
+        } catch (NumberFormatException e) {
+            profileStatusLabel.setText("Family size must be a positive integer.");
+            profileStatusLabel.setStyle("-fx-text-fill: #e74c3c;");
+            return;
+        }
+        
+        currentSubProfile.setEmail(email);
+        currentSubProfile.setPhoneNumber(phone);
+        currentSubProfile.setFamilySize(familySize);
+        currentSubProfile.setCreditCardNumber(card.isEmpty() ? null : card);
+        
+        Message response = ClientUI.client.sendRequest(new Message(Message.UPDATE_SUBSCRIBER, currentSubProfile));
+        if (Message.OK.equals(response.getAction())) {
+            profileStatusLabel.setText("Profile updated successfully!");
+            profileStatusLabel.setStyle("-fx-text-fill: #27ae60;");
+            showAlert("Success", "Profile Updated", "Your contact details have been updated in the database.");
+            loadProfileInfo();
+        } else {
+            profileStatusLabel.setText("Failed to save changes: " + response.getPayload());
+            profileStatusLabel.setStyle("-fx-text-fill: #e74c3c;");
+        }
+    }
+
+    @FXML
+    public void onSelfCheckout() {
+        Reservation sel = reservationsTable.getSelectionModel().getSelectedItem();
+        if (sel == null || !"ACTIVE".equals(sel.getStatus())) return;
+        
+        Message response = ClientUI.client.sendRequest(new Message(Message.REGISTER_EXIT, String.valueOf(sel.getReservationId())));
+        if (Message.OK.equals(response.getAction())) {
+            showAlert("Success", "Check-Out Successful", "You have successfully checked out of the park. Have a nice day!");
+            refreshReservations();
+        } else {
+            showAlert("Error", "Check-Out Failed", response.getPayload().toString());
+        }
     }
 }

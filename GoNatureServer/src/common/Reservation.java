@@ -33,6 +33,7 @@ public class Reservation implements Serializable {
     private String status;
     private String paymentStatus;
     private double price;
+    private String priceBreakdown;
     private Timestamp createdAt;
     private Timestamp actualEntryTime;
     private Timestamp actualExitTime;
@@ -195,6 +196,12 @@ public class Reservation implements Serializable {
 
     /** @param noShow true if the reservation should be marked as a no-show */
     public void setNoShow(boolean noShow) { isNoShow = noShow; }
+
+    /** @return the detailed price breakdown string */
+    public String getPriceBreakdown() { return priceBreakdown; }
+
+    /** @param priceBreakdown the detailed price breakdown string to set */
+    public void setPriceBreakdown(String priceBreakdown) { this.priceBreakdown = priceBreakdown; }
 
     /**
      * Returns a string representation of the reservation.
