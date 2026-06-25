@@ -12,6 +12,11 @@ import common.Message;
 import common.Subscriber;
 import common.User;
 
+/**
+ * Controller for the service representative screen. Handles registering
+ * new subscribers and tour guides, searching user/subscriber profiles,
+ * and the simulated clock.
+ */
 public class ServiceRepController {
 
     // Subscriber Fields
@@ -70,12 +75,19 @@ public class ServiceRepController {
     private double simSpeedup = 1.0;
     private long clientSyncTime = 0;
 
+    /**
+     * Initializes the controller and starts the simulated clock.
+     */
     @FXML
     public void initialize() {
         initSimClock();
     }
 
-
+    /**
+     * Validates the subscriber form fields (ID, email, phone, family size)
+     * and registers a new subscriber, showing the assigned subscriber
+     * number on success.
+     */
     @FXML
     public void onRegisterSubscriber() {
         String id = subIdField.getText().trim();
@@ -134,6 +146,10 @@ public class ServiceRepController {
         }
     }
 
+    /**
+     * Validates the guide form fields and registers a new guide account
+     * with the GUIDE role.
+     */
     @FXML
     public void onRegisterGuide() {
         String username = guideUsernameField.getText().trim();
@@ -168,6 +184,9 @@ public class ServiceRepController {
         }
     }
 
+    /**
+     * Clears all subscriber registration form fields.
+     */
     private void clearSubscriberFields() {
         subIdField.clear();
         subFirstNameField.clear();
@@ -178,6 +197,9 @@ public class ServiceRepController {
         subCreditCardField.clear();
     }
 
+    /**
+     * Clears all guide registration form fields.
+     */
     private void clearGuideFields() {
         guideUsernameField.clear();
         guidePasswordField.clear();
@@ -186,6 +208,10 @@ public class ServiceRepController {
         guideEmailField.clear();
     }
 
+    /**
+     * Looks up a subscriber or user/employee profile by ID or username and
+     * displays the matching details, or shows an alert if not found.
+     */
     @FXML
     public void onSearchUserProfile() {
         String query = searchQueryField.getText().trim();
@@ -228,6 +254,10 @@ public class ServiceRepController {
         }
     }
 
+    /**
+     * Stops the simulated clock, logs the user out on the server, and
+     * returns to the login screen.
+     */
     @FXML
     public void onLogout() {
         if (clockTimeline != null) {
@@ -238,6 +268,10 @@ public class ServiceRepController {
         ClientUI.setRoot("/gui/LoginUI.fxml", "GoNature - Login Portal", 500, 670);
     }
 
+    /**
+     * Fetches the server's simulated time and speedup factor and starts
+     * the local clock display timeline.
+     */
     private void initSimClock() {
         Message response = ClientUI.client.sendRequest(new Message(Message.GET_SIMULATION_TIME, null));
         if (Message.OK.equals(response.getAction())) {
@@ -249,6 +283,11 @@ public class ServiceRepController {
         }
     }
 
+    /**
+     * Starts (or restarts) the recurring timeline that updates the
+     * simulated clock label every 250ms based on the synced server time
+     * and speedup factor.
+     */
     private void startClockTimeline() {
         if (clockTimeline != null) {
             clockTimeline.stop();
@@ -270,12 +309,23 @@ public class ServiceRepController {
         clockTimeline.play();
     }
 
+    /**
+     * Computes the simulated time at the moment of the last server sync.
+     *
+     * @return simulated time in milliseconds at sync time
+     */
     private long getSimulatedTimeAtSync() {
         long elapsedReal = clientSyncTime - simStartMs;
         return simStartMs + (long)(elapsedReal * simSpeedup);
     }
 
-
+    /**
+     * Shows a blocking informational alert dialog.
+     *
+     * @param title   dialog window title
+     * @param header  dialog header text
+     * @param content dialog body text
+     */
     private void showAlert(String title, String header, String content) {
         Alert alert = new Alert(AlertType.INFORMATION);
         alert.setTitle(title);

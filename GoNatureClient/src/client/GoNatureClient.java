@@ -5,6 +5,11 @@ import common.ChatIF;
 import common.Message;
 import ocsf.client.AbstractClient;
 
+/**
+ * Client side of the GoNature application.
+ * Extends the OCSF AbstractClient and adds a synchronous
+ * request-response mechanism on top of the underlying async TCP connection.
+ */
 public class GoNatureClient extends AbstractClient {
 
     // Busy-waiting flags for synchronous request-response over TCP
@@ -13,11 +18,27 @@ public class GoNatureClient extends AbstractClient {
 
     private final ChatIF clientUI;
 
+    /**
+     * Creates the client and opens a connection to the server.
+     *
+     * @param host the server host name or address
+     * @param port the server port
+     * @param clientUI the UI used to display messages
+     * @throws IOException if the connection to the server cannot be established
+     */
     public GoNatureClient(String host, int port, ChatIF clientUI) throws IOException {
         super(host, port);
         this.clientUI = clientUI;
     }
 
+    /**
+     * Handles messages pushed from the server.
+     * Responds automatically to PING messages with a PONG,
+     * and otherwise stores the message as the last response,
+     * forwards it to the UI, and releases any thread waiting in sendRequest.
+     *
+     * @param msg the message received from the server
+     */
     @Override
     protected void handleMessageFromServer(Object msg) {
     	//========= ping
@@ -45,6 +66,9 @@ public class GoNatureClient extends AbstractClient {
 
     /**
      * Sends a request to the server and blocks until the response is received.
+     *
+     * @param request the message to send to the server
+     * @return the server's response, or an ERROR message if sending failed
      */
     public synchronized Message sendRequest(Message request) {
         try {
@@ -69,6 +93,9 @@ public class GoNatureClient extends AbstractClient {
         return lastResponse;
     }
 
+    /**
+     * Closes the connection to the server and terminates the application.
+     */
     public void quit() {
         try {
             closeConnection();

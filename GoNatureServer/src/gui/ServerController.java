@@ -26,6 +26,11 @@ import java.time.LocalDateTime;
 import java.sql.Timestamp;
 import server.SimulationScheduler;
 
+/**
+* Controller for the server console screen. Handles starting and stopping
+* the OCSF server, displaying connected clients, logging console output,
+* and showing the simulated clock.
+*/
 public class ServerController implements ChatIF {
 
     @FXML
@@ -61,6 +66,10 @@ public class ServerController implements ChatIF {
     private Timeline clockTimeline;
     private final ObservableList<ClientInfo> clientData = FXCollections.observableArrayList();
 
+    /**
+     * Wires up the clients table columns and shows a welcome message in
+     * the console log.
+     */
     @FXML
     public void initialize() {
         ipColumn.setCellValueFactory(new PropertyValueFactory<>("ip"));
@@ -70,6 +79,11 @@ public class ServerController implements ChatIF {
         display("System: Welcome to GoNature Server Console.");
     }
 
+    /**
+     * Appends a message to the console log area on the JavaFX thread.
+     *
+     * @param message message to log
+     */
     @Override
     public void display(Object message) {
         Platform.runLater(() -> {
@@ -79,6 +93,12 @@ public class ServerController implements ChatIF {
         });
     }
 
+    /**
+     * Starts the OCSF server using the entered port and database
+     * credentials, disables the input fields, and starts the simulated
+     * clock. Shows an error in the status label and console log on
+     * failure.
+     */
     @FXML
     public void onStartServer() {
         try {
@@ -108,6 +128,10 @@ public class ServerController implements ChatIF {
         }
     }
 
+    /**
+     * Stops the running server and the simulated clock, re-enables the
+     * input fields, and clears the connected clients table.
+     */
     @FXML
     public void onStopServer() {
         try {
@@ -132,6 +156,10 @@ public class ServerController implements ChatIF {
         }
     }
 
+    /**
+     * Starts (or restarts) the recurring timeline that updates the
+     * simulated clock label every 250ms from the simulation scheduler.
+     */
     private void startClockTimeline() {
         if (clockTimeline != null) {
             clockTimeline.stop();
@@ -147,6 +175,11 @@ public class ServerController implements ChatIF {
         clockTimeline.play();
     }
 
+    /**
+     * Enables or disables the server configuration input fields.
+     *
+     * @param disable true to disable the fields, false to enable them
+     */
     private void toggleInputs(boolean disable) {
         portField.setDisable(disable);
         dbHostField.setDisable(disable);
@@ -155,6 +188,10 @@ public class ServerController implements ChatIF {
         dbPasswordField.setDisable(disable);
     }
 
+    /**
+     * Rebuilds the clients table from the server's current live
+     * connections.
+     */
     private void refreshClientsTable() {
         Platform.runLater(() -> {
             clientData.clear();
@@ -169,19 +206,33 @@ public class ServerController implements ChatIF {
         });
     }
 
+    /**
+     * Simple row model for the connected-clients table: IP address,
+     * host name, and connection status.
+     */
     public static class ClientInfo {
         private final SimpleStringProperty ip;
         private final SimpleStringProperty host;
         private final SimpleStringProperty status;
 
+        /**
+         * Creates a client row with the given IP, host, and status.
+         *
+         * @param ip     client IP address
+         * @param host   client host name
+         * @param status connection status
+         */
         public ClientInfo(String ip, String host, String status) {
             this.ip = new SimpleStringProperty(ip);
             this.host = new SimpleStringProperty(host);
             this.status = new SimpleStringProperty(status);
         }
-
+        
+        /** @return the client's IP address */
         public String getIp() { return ip.get(); }
+        /** @return the client's host name */
         public String getHost() { return host.get(); }
+        /** @return the client's connection status */
         public String getStatus() { return status.get(); }
     }
 }

@@ -11,6 +11,11 @@ import client.ClientUI;
 import common.Message;
 import common.User;
 
+/**
+ * Controller for the login screen. Handles employee login (with role-based
+ * dashboard redirection), visitor/subscriber login, and returning to the
+ * connection screen.
+ */
 public class LoginController {
 
     @FXML
@@ -22,6 +27,11 @@ public class LoginController {
     @FXML
     private Label statusLabel;
 
+    /**
+     * Authenticates an employee with username and password, then opens the
+     * dashboard matching their role. Shows an error if the credentials are
+     * invalid or the role is unrecognized.
+     */
     @FXML
     public void onEmployeeLogin() {
         String username = usernameField.getText().trim();
@@ -65,6 +75,10 @@ public class LoginController {
         }
     }
 
+    /**
+     * Validates a visitor's ID or subscriber number with the server and,
+     * on success, opens the visitor dashboard as a guest visitor session.
+     */
     @FXML
     public void onVisitorLogin() {
         String visitorId = visitorIdField.getText().trim();
@@ -94,6 +108,10 @@ public class LoginController {
         }
     }
 
+    /**
+     * Closes the active server connection, clears the current user and
+     * client, and returns to the connection screen.
+     */
     @FXML
     public void onBack() {
         // Cleanly disconnect from the server, then return to the Connection screen.

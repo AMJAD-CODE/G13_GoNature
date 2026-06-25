@@ -25,6 +25,10 @@ import common.Message;
 import common.Park;
 import common.Promotion;
 
+/**
+ * Controller for the Department Manager screen.
+ * Handles park/promotion proposal approvals and monthly report generation.
+ */
 public class DeptManagerController {
 
     @FXML
@@ -96,6 +100,10 @@ public class DeptManagerController {
     private final ObservableList<Promotion> pendingPromotions = FXCollections.observableArrayList();
     private final List<Park> allParks = new ArrayList<>();
 
+    /**
+     * Initializes table columns, combo boxes, loads pending proposals,
+     * and starts the simulated clock.
+     */
     @FXML
     public void initialize() {
         deptLabel.setText("Logged in as Dept Manager: " + ClientUI.currentUser.getUsername());
@@ -156,7 +164,10 @@ public class DeptManagerController {
         initSimClock();
     }
 
-
+    /**
+     * Populates the park filter combo box with "All Parks" and parks 1-3
+     * fetched from the server.
+     */
     private void loadParksFilter() {
         parkFilterComboBox.getItems().clear();
         parkFilterComboBox.getItems().add("All Parks");
@@ -174,6 +185,10 @@ public class DeptManagerController {
         parkFilterComboBox.getSelectionModel().selectFirst(); // Default to "All Parks"
     }
 
+    /**
+     * Fetches pending park parameter proposals from the server and
+     * refreshes the parks table.
+     */
     private void refreshPendingParks() {
         Message response = ClientUI.client.sendRequest(new Message(Message.GET_PENDING_PARKS, null));
         if (Message.OK.equals(response.getAction())) {
@@ -187,6 +202,10 @@ public class DeptManagerController {
         }
     }
 
+    /**
+     * Fetches pending promotion proposals from the server and refreshes
+     * the promotions table.
+     */
     private void refreshPendingPromotions() {
         Message response = ClientUI.client.sendRequest(new Message(Message.GET_PENDING_PROMOTIONS, null));
         if (Message.OK.equals(response.getAction())) {
@@ -200,16 +219,24 @@ public class DeptManagerController {
         }
     }
 
+    /** Approves the selected park parameter proposal. */
     @FXML
     public void onApprovePark() {
         resolveParkProposal(true);
     }
 
+    /** Rejects the selected park parameter proposal. */
     @FXML
     public void onRejectPark() {
         resolveParkProposal(false);
     }
 
+    /**
+     * Sends an approve or reject decision for the selected park proposal to
+     * the server, then refreshes the table.
+     *
+     * @param approve true to approve, false to reject
+     */
     private void resolveParkProposal(boolean approve) {
         Park sel = parksTable.getSelectionModel().getSelectedItem();
         if (sel == null) return;
@@ -226,16 +253,24 @@ public class DeptManagerController {
         }
     }
 
+    /** Approves the selected promotion proposal. */
     @FXML
     public void onApprovePromo() {
         resolvePromoProposal(true);
     }
 
+    /** Rejects the selected promotion proposal. */
     @FXML
     public void onRejectPromo() {
         resolvePromoProposal(false);
     }
 
+    /**
+     * Sends an approve or reject decision for the selected promotion to
+     * the server, then refreshes the table.
+     *
+     * @param approve true to approve, false to reject
+     */
     private void resolvePromoProposal(boolean approve) {
         Promotion sel = promotionsTable.getSelectionModel().getSelectedItem();
         if (sel == null) return;
@@ -252,6 +287,11 @@ public class DeptManagerController {
         }
     }
 
+    /**
+     * Fetches and renders the monthly visit-duration and cancellation
+     * bar charts for the selected month, year, and park filter.
+     * A park ID of 0 aggregates across all parks.
+     */
     @FXML
     public void onGenerateReports() {
         Integer month = monthComboBox.getValue();
@@ -324,6 +364,10 @@ public class DeptManagerController {
         statusLabel.setText("Department reports charts rendered.");
     }
 
+    /**
+     * Logs out the current user, stops the clock, and returns to the
+     * login screen.
+     */
     @FXML
     public void onLogout() {
         if (clockTimeline != null) {
@@ -334,6 +378,10 @@ public class DeptManagerController {
         ClientUI.setRoot("/gui/LoginUI.fxml", "GoNature - Login Portal", 500, 670);
     }
 
+    /**
+     * Fetches the simulation start time and speedup factor from the server
+     * and starts the clock timeline.
+     */
     private void initSimClock() {
         Message response = ClientUI.client.sendRequest(new Message(Message.GET_SIMULATION_TIME, null));
         if (Message.OK.equals(response.getAction())) {
@@ -345,6 +393,10 @@ public class DeptManagerController {
         }
     }
 
+    /**
+     * Starts a timeline that updates simClockLabel every 250 ms with the
+     * current simulated time, scaled by simSpeedup.
+     */
     private void startClockTimeline() {
         if (clockTimeline != null) {
             clockTimeline.stop();
@@ -366,12 +418,23 @@ public class DeptManagerController {
         clockTimeline.play();
     }
 
+    /**
+     * Returns the simulated timestamp at the moment of last server sync.
+     *
+     * @return simulated epoch milliseconds at sync time
+     */
     private long getSimulatedTimeAtSync() {
         long elapsedReal = clientSyncTime - simStartMs;
         return simStartMs + (long)(elapsedReal * simSpeedup);
     }
 
-
+    /**
+     * Displays an information alert dialog to the user.
+     *
+     * @param title   the title of the alert
+     * @param header  the header text
+     * @param content the message content
+     */
     private void showAlert(String title, String header, String content) {
         Alert alert = new Alert(AlertType.INFORMATION);
         alert.setTitle(title);
