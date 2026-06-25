@@ -35,6 +35,11 @@ import common.User;
 import common.Subscriber;
 import javafx.scene.control.Tab;
 
+/**
+ * Controller for the Visitor/Guide screen.
+ * Handles reservation booking, confirmation, cancellation, checkout,
+ * waiting list, alternate hour lookup, profile editing, and the simulated clock.
+ */
 public class VisitorController {
 
     @FXML
@@ -136,6 +141,10 @@ public class VisitorController {
     private List<Park> parksList = new ArrayList<>();
     private Reservation pendingReservationAttempt = null;
 
+    /**
+     * Sets up table columns, selection listeners, loads parks, reservations,
+     * profile info, and starts the simulated clock.
+     */
     @FXML
     public void initialize() {
         // Welcome message
@@ -207,6 +216,7 @@ public class VisitorController {
         initSimClock();
     }
 
+    /** Fetches all parks from the server and populates the park combo box. */
     private void loadParks() {
         Message response = ClientUI.client.sendRequest(new Message(Message.GET_ALL_PARKS, null));
         if (Message.OK.equals(response.getAction())) {
@@ -222,6 +232,7 @@ public class VisitorController {
         }
     }
 
+    /** Fetches the current user's reservations and refreshes the table. */
     @FXML
     public void refreshReservations() {
         String visitorId = ClientUI.currentUser.getUsername();
@@ -240,6 +251,7 @@ public class VisitorController {
         }
     }
 
+    /** Confirms the selected PENDING_CONFIRMATION reservation. */
     @FXML
     public void onConfirmReservation() {
         Reservation sel = reservationsTable.getSelectionModel().getSelectedItem();
@@ -254,6 +266,7 @@ public class VisitorController {
         }
     }
 
+    /** Cancels the selected reservation and releases its slot. */
     @FXML
     public void onCancelReservation() {
         Reservation sel = reservationsTable.getSelectionModel().getSelectedItem();
@@ -268,6 +281,10 @@ public class VisitorController {
         }
     }
 
+    /**
+     * Validates all booking form fields, builds a Reservation, and submits it
+     * to the server. Shows the waiting list panel if the slot is full.
+     */
     @FXML
     public void onBookVisit() {
         Park park = parkComboBox.getValue();
@@ -439,7 +456,7 @@ public class VisitorController {
         }
     }
 
-    
+    /** Adds the pending reservation attempt to the waiting list. */
     @FXML
     public void onJoinWaitingList() {
         if (pendingReservationAttempt == null) return;
@@ -461,6 +478,10 @@ public class VisitorController {
         }
     }
 
+    /**
+     * Fetches the hourly occupancy table for the selected park and date,
+     * and populates the alternates table with load vs. capacity per hour.
+     */
     @FXML
     public void onViewAlternates() {
         if (pendingReservationAttempt == null) return;
@@ -500,6 +521,7 @@ public class VisitorController {
         }
     }
 
+    /** Clears all booking form fields and resets the pending reservation. */
     private void clearBookingFields() {
         parkComboBox.setValue(null);
         datePicker.setValue(null);
@@ -512,6 +534,7 @@ public class VisitorController {
         pendingReservationAttempt = null;
     }
 
+    /** Logs out the current user, stops the clock, and returns to the login screen. */
     @FXML
     public void onLogout() {
         if (clockTimeline != null) {
@@ -524,6 +547,15 @@ public class VisitorController {
         ClientUI.currentUser = null;
         ClientUI.setRoot("/gui/LoginUI.fxml", "GoNature - Login Portal", 500, 670);
     }
+    
+    /**
+     * Shows a confirmation dialog and returns true if the user clicked OK.
+     *
+     * @param title   dialog title
+     * @param header  header text
+     * @param content message body
+     * @return true if confirmed, false otherwise
+     */
     private boolean showConfirmation(String title, String header, String content) {
         javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.CONFIRMATION);
         alert.setTitle(title);
@@ -533,6 +565,7 @@ public class VisitorController {
         return result.isPresent() && result.get() == javafx.scene.control.ButtonType.OK;
     }
 
+    /** Fetches simulation time from the server and starts the clock timeline. */
     private void initSimClock() {
         Message response = ClientUI.client.sendRequest(new Message(Message.GET_SIMULATION_TIME, null));
         if (Message.OK.equals(response.getAction())) {
@@ -548,6 +581,10 @@ public class VisitorController {
     private List<Integer> alertedReservations = new ArrayList<>();
     private int tickCount = 0;
 
+    /**
+     * Starts a timeline that updates the clock label every 250 ms and
+     * silently refreshes reservations every 2 seconds.
+     */
     private void startClockTimeline() {
         if (clockTimeline != null) {
             clockTimeline.stop();
@@ -574,11 +611,21 @@ public class VisitorController {
         clockTimeline.play();
     }
 
+    /**
+     * Returns the simulated timestamp at the moment of last server sync.
+     *
+     * @return simulated epoch milliseconds at sync time
+     */
     private long getSimulatedTimeAtSync() {
         long elapsedReal = clientSyncTime - simStartMs;
         return simStartMs + (long)(elapsedReal * simSpeedup);
     }
 
+    /**
+     * Silently refreshes the reservations table without updating the status
+     * label. Fires an alert if any reservation has moved to PENDING_CONFIRMATION
+     * for the first time.
+     */
     private void refreshReservationsSilent() {
         String visitorId = ClientUI.currentUser.getUsername();
         Message response = ClientUI.client.sendRequest(new Message(Message.GET_RESERVATIONS_BY_ID, visitorId));
@@ -620,6 +667,7 @@ public class VisitorController {
         }
     }
 
+    /** Displays an informational alert dialog. */
     private void showAlert(String title, String header, String content) {
         Alert alert = new Alert(AlertType.INFORMATION);
         alert.setTitle(title);
@@ -633,6 +681,10 @@ public class VisitorController {
         private final String hour;
         private final String load;
 
+        /**
+         * Simple data holder for a single row in the alternate-hours table.
+         * Stores the hour label and its current load vs. capacity string.
+         */
         public AlternateHour(String hour, String load) {
             this.hour = hour;
             this.load = load;
@@ -644,6 +696,10 @@ public class VisitorController {
 
     private Subscriber currentSubProfile = null;
 
+    /**
+     * Loads the current user's subscriber profile from the server and
+     * populates the profile tab fields. Disables the tab for non-subscribers.
+     */ 
     private void loadProfileInfo() {
         String visitorId = ClientUI.currentUser.getUsername();
         
@@ -676,6 +732,10 @@ public class VisitorController {
         }
     }
 
+    /**
+     * Validates and saves the edited profile fields to the server,
+     * then reloads the profile tab.
+     */
     @FXML
     public void onSaveProfile() {
         if (currentSubProfile == null) return;
@@ -731,6 +791,7 @@ public class VisitorController {
         }
     }
 
+    /** Checks out the selected ACTIVE reservation and marks the visit as complete. */
     @FXML
     public void onSelfCheckout() {
         Reservation sel = reservationsTable.getSelectionModel().getSelectedItem();

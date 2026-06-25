@@ -9,6 +9,11 @@ import client.ClientUI;
 import client.GoNatureClient;
 import common.ChatIF;
 
+/**
+ * Controller for the connection screen. Collects the server host and port,
+ * opens the OCSF client connection, and on success switches to the login
+ * screen.
+ */
 public class ConnectionController implements ChatIF {
 
     @FXML
@@ -20,7 +25,11 @@ public class ConnectionController implements ChatIF {
     @FXML
     private Label statusLabel;
 
-    //it just collects the server IP/host and opens the connection, then swaps to the login screen
+    /**
+     * Reads the entered host and port, opens a connection to the server,
+     * and navigates to the login screen on success. Shows an error if the
+     * fields are invalid or the connection fails.
+     */
     @FXML
     public void onConnect() {
         String host = hostField.getText().trim();
@@ -51,6 +60,11 @@ public class ConnectionController implements ChatIF {
         }
     }
 
+    /**
+     * Logs a connection-related message to the console.
+     *
+     * @param message message to display
+     */
     @Override
     public void display(Object message) {
         System.out.println("Connection Log: " + message);

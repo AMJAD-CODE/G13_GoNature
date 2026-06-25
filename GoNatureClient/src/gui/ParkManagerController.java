@@ -19,6 +19,11 @@ import common.Message;
 import common.Park;
 import common.Promotion;
 
+/**
+ * Controller for the park manager screen. Handles viewing and proposing
+ * park parameter changes, submitting promotions, generating monthly
+ * visitor/usage reports, and the simulated clock.
+ */
 public class ParkManagerController {
 
     @FXML
@@ -76,6 +81,11 @@ public class ParkManagerController {
 
     private Park currentPark = null;
 
+    /**
+     * Initializes the controller: shows the manager's name, populates the
+     * month/year report combo boxes with the current month/year selected,
+     * loads the park's current parameters, and starts the simulated clock.
+     */
     @FXML
     public void initialize() {
         managerLabel.setText("Manager: " + ClientUI.currentUser.getUsername());
@@ -99,7 +109,10 @@ public class ParkManagerController {
         initSimClock();
     }
 
-
+    /**
+     * Reloads the assigned park's current parameters and any pending
+     * approval status from the server and updates the parameter labels.
+     */
     private void refreshParameters() {
         if (ClientUI.currentUser.getAssignedParkId() == null) {
             statusLabel.setText("ERROR: No assigned park for this manager.");
@@ -132,6 +145,10 @@ public class ParkManagerController {
         }
     }
 
+    /**
+     * Validates and submits a proposed change to the park's max quota,
+     * reserved gap, and stay duration for department manager approval.
+     */
     @FXML
     public void onSubmitParameters() {
         String capStr = newCapacityField.getText().trim();
@@ -171,6 +188,10 @@ public class ParkManagerController {
         }
     }
 
+    /**
+     * Validates and submits a new promotion (name, discount rate, and date
+     * range) for the current park, pending department manager approval.
+     */
     @FXML
     public void onSubmitPromotion() {
         String name = promoNameField.getText().trim();
@@ -220,6 +241,11 @@ public class ParkManagerController {
         }
     }
 
+    /**
+     * Fetches the monthly visitor-type and daily occupancy reports for the
+     * selected month/year and renders them into the visitor and usage
+     * bar charts.
+     */
     @FXML
     public void onGenerateReports() {
         Integer month = monthComboBox.getValue();
@@ -275,6 +301,10 @@ public class ParkManagerController {
         statusLabel.setText("Performance charts rendered.");
     }
 
+    /**
+     * Stops the simulated clock, logs the manager out on the server, and
+     * returns to the login screen.
+     */
     @FXML
     public void onLogout() {
         if (clockTimeline != null) {
@@ -285,6 +315,10 @@ public class ParkManagerController {
         ClientUI.setRoot("/gui/LoginUI.fxml", "GoNature - Login Portal", 500, 670);
     }
 
+    /**
+     * Fetches the server's simulated time and speedup factor and starts
+     * the local clock display timeline.
+     */
     private void initSimClock() {
         Message response = ClientUI.client.sendRequest(new Message(Message.GET_SIMULATION_TIME, null));
         if (Message.OK.equals(response.getAction())) {
@@ -296,6 +330,11 @@ public class ParkManagerController {
         }
     }
 
+    /**
+     * Starts (or restarts) the recurring timeline that updates the
+     * simulated clock label every 250ms based on the synced server time
+     * and speedup factor.
+     */
     private void startClockTimeline() {
         if (clockTimeline != null) {
             clockTimeline.stop();
@@ -317,12 +356,23 @@ public class ParkManagerController {
         clockTimeline.play();
     }
 
+    /**
+     * Computes the simulated time at the moment of the last server sync.
+     *
+     * @return simulated time in milliseconds at sync time
+     */
     private long getSimulatedTimeAtSync() {
         long elapsedReal = clientSyncTime - simStartMs;
         return simStartMs + (long)(elapsedReal * simSpeedup);
     }
 
-
+    /**
+     * Shows a blocking informational alert dialog.
+     *
+     * @param title   dialog window title
+     * @param header  dialog header text
+     * @param content dialog body text
+     */
     private void showAlert(String title, String header, String content) {
         Alert alert = new Alert(AlertType.INFORMATION);
         alert.setTitle(title);

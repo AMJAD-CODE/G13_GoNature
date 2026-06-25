@@ -20,6 +20,11 @@ import common.Message;
 import common.Park;
 import common.Reservation;
 
+/**
+ * Controller for the employee screen. Handles park capacity display,
+ * the simulated clock, visitor entry lookup and check-in, billing,
+ * exit check-out, spontaneous (walk-in) entries, and QR scan simulation.
+ */
 public class EmployeeController {
 
     @FXML
@@ -79,6 +84,10 @@ public class EmployeeController {
     private int currentOccupancy = 0;
     private Reservation activeLookupRes = null;
 
+    /**
+     * Initializes the controller: shows the logged-in employee's name,
+     * loads the assigned park's capacity, and starts the simulated clock.
+     */
     @FXML
     public void initialize() {
         employeeLabel.setText("Employee: " + ClientUI.currentUser.getUsername());
@@ -91,6 +100,11 @@ public class EmployeeController {
     }
 
 
+    /**
+     * Reloads the assigned park's details and current occupancy from the
+     * server and updates the park/capacity labels. Shows an error if the
+     * employee has no assigned park or the data can't be loaded.
+     */
     @FXML
     public void refreshCapacity() {
         if (ClientUI.currentUser.getAssignedParkId() == null) {
@@ -123,6 +137,12 @@ public class EmployeeController {
         }
     }
 
+    /**
+     * Looks up a reservation by code or visitor ID for entrance check-in.
+     * Validates that the reservation belongs to the current park, is within
+     * the allowed check-in window, and is in a checkable status, then
+     * populates the details panel.
+     */
     @FXML
     public void onLookupEntry() {
         String search = entrySearchField.getText().trim();
@@ -216,6 +236,10 @@ public class EmployeeController {
         }
     }
 
+    /**
+     * Registers entry for the currently looked-up reservation using the
+     * entered actual visitor count, then displays the generated bill.
+     */
     @FXML
     public void onProcessEntryBill() {
         if (activeLookupRes == null) return;
@@ -249,6 +273,10 @@ public class EmployeeController {
         }
     }
 
+    /**
+     * Confirms payment for the displayed bill, clears the entry/details
+     * panels, and refreshes park capacity.
+     */
     @FXML
     public void onConfirmCheckIn() {
         // Payment collected, clear screen and update capacity
@@ -260,6 +288,10 @@ public class EmployeeController {
         refreshCapacity();
     }
 
+    /**
+     * Registers an exit for the visitor ID or reservation code entered in
+     * the exit field, then refreshes park capacity.
+     */
     @FXML
     public void onLookupExit() {
         String code = exitSearchField.getText().trim();
@@ -278,6 +310,11 @@ public class EmployeeController {
         }
     }
 
+    /**
+     * Registers a walk-in (no reservation) entry for the given visitor ID
+     * and group size, after checking the park is within operating hours.
+     * Shows the generated bill on success.
+     */
     @FXML
     public void onSpontaneousEntry() {
         String visitorId = spontIdField.getText().trim();
@@ -341,6 +378,11 @@ public class EmployeeController {
         }
     }
 
+    /**
+     * Simulates scanning a visitor's QR code at the entrance by letting the
+     * employee pick from the park's confirmed/pending reservations, then
+     * auto-fills the entry search field and runs the lookup.
+     */
     @FXML
     public void onSimulateEntryQRScan() {
         if (currentPark == null) {
@@ -385,6 +427,11 @@ public class EmployeeController {
         }
     }
 
+    /**
+     * Simulates scanning a visitor's QR code at the exit by letting the
+     * employee pick from currently active visits, then auto-fills the exit
+     * search field and runs check-out.
+     */
     @FXML
     public void onSimulateExitQRScan() {
         if (currentPark == null) {
@@ -429,6 +476,10 @@ public class EmployeeController {
         }
     }
 
+    /**
+     * Stops the simulated clock, logs the employee out on the server, and
+     * returns to the login screen.
+     */
     @FXML
     public void onLogout() {
         if (clockTimeline != null) {
@@ -439,6 +490,10 @@ public class EmployeeController {
         ClientUI.setRoot("/gui/LoginUI.fxml", "GoNature - Login Portal", 500, 670);
     }
 
+    /**
+     * Fetches the server's simulated time and speedup factor and starts
+     * the local clock display timeline.
+     */
     private void initSimClock() {
         Message response = ClientUI.client.sendRequest(new Message(Message.GET_SIMULATION_TIME, null));
         if (Message.OK.equals(response.getAction())) {
@@ -450,6 +505,11 @@ public class EmployeeController {
         }
     }
 
+    /**
+     * Starts (or restarts) the recurring timeline that updates the
+     * simulated clock label every 250ms based on the synced server time
+     * and speedup factor.
+     */
     private void startClockTimeline() {
         if (clockTimeline != null) {
             clockTimeline.stop();
@@ -471,17 +531,35 @@ public class EmployeeController {
         clockTimeline.play();
     }
 
+    /**
+     * Computes the simulated time at the moment of the last server sync.
+     *
+     * @return simulated time in milliseconds at sync time
+     */
     private long getSimulatedTimeAtSync() {
         long elapsedReal = clientSyncTime - simStartMs;
         return simStartMs + (long)(elapsedReal * simSpeedup);
     }
 
-
+    /**
+     * Checks whether two timestamps fall on the same calendar day.
+     *
+     * @param ts1 first timestamp
+     * @param ts2 second timestamp
+     * @return true if both are non-null and on the same day
+     */
     private boolean isSameDay(Timestamp ts1, Timestamp ts2) {
         if (ts1 == null || ts2 == null) return false;
         return new SimpleDateFormat("yyyy-MM-dd").format(ts1).equals(new SimpleDateFormat("yyyy-MM-dd").format(ts2));
     }
 
+    /**
+     * Shows a blocking informational alert dialog.
+     *
+     * @param title   dialog window title
+     * @param header  dialog header text
+     * @param content dialog body text
+     */
     private void showAlert(String title, String header, String content) {
         Alert alert = new Alert(AlertType.INFORMATION);
         alert.setTitle(title);
